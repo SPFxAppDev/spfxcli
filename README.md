@@ -1,6 +1,6 @@
-# @spfxappdev/init
+# spfxappdev-init
 
-[![npm version](https://badge.fury.io/js/@spfxappdev%2Finit.svg)](https://badge.fury.io/js/@spfxappdev%2Finit)
+[![npm version](https://badge.fury.io/js/spfxappdev-init.svg)](https://badge.fury.io/js/spfxappdev-init)
 
 A command line utility, which modifies your SharePoint Framework solution, so that you can use `alias`-paths instead of relative paths. 
 Also, an automatic "version increase" task (gulp) is included and you can build, version increment, bundle and package solution with just one `npm` command
@@ -9,13 +9,13 @@ Also, an automatic "version increase" task (gulp) is included and you can build,
 
 ## Installation
 
-`npm i @spfxappdev/init -g`
+`npm i spfxappdev-init -g`
 
 ## Usage
 
-1. Run `npm i @spfxappdev/init -g`
+1. Run `npm i spfxappdev-init -g`
 2. Open a command line in a folder with your SharePoint Framework solution you want modify/extend.
-3. Run `@spfxappdev/init`
+3. Run `spfxappdev-init`
 
 After you have executed the command, the following files have been modified/created:
 
@@ -58,7 +58,7 @@ import HelloWorldWebPartComponent from ' @webparts/helloworld/components/HelloWo
 import { MyComponent } from '@components/MyComponent';
 ```
 
-If you run `@spfxappdev/init` the following aliases are registered:
+If you run `spfxappdev-init` the following aliases are registered:
 
 ```typescript
 "@webparts": "src/webparts",

@@ -1,5 +1,5 @@
 {
-  "name": "@spfxappdev/init",
+  "name": "spfxappdev-init",
   "version": "1.0.0",
   "description": "",
   "main": "lib/index.js",
@@ -12,6 +12,7 @@
   "keywords": [
     "spfx init",
     "spfx",
+    "spfxappdev",
     "spfx setup"
   ],
   "author": "Seryoga",
