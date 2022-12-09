@@ -1,0 +1,44 @@
+{
+  "name": "@spfxappdev/init",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "bin": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -p . && npm run copy",
+    "copy": "cpy **/*.js* ../../lib/templates --parents --cwd=src/templates"
+  },
+  "keywords": [
+    "spfx init",
+    "spfx",
+    "spfx setup"
+  ],
+  "author": "Seryoga",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SPFxAppDev/spfxinit.git/issues"
+  },
+  "homepage": "https://github.com/SPFxAppDev/spfxinit.git#readme",
+  "dependencies": {
+    "@types/update-notifier": "5.1.0",
+    "@types/yargs": "16.0.3",
+    "chalk": "4.1.2",
+    "detect-indent": "6.1.0",
+    "log-symbols": "4.1.0",
+    "replace-in-file": "5.0.2",
+    "update-notifier": "5.1.0",
+    "yargs": "16.2.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.18.0",
+    "@typescript-eslint/parser": "^4.18.0",
+    "concurrently": "^6.0.0",
+    "cpy-cli": "^3.1.1",
+    "eslint": "^7.22.0",
+    "onchange": "^7.1.0",
+    "rimraf": "^3.0.2",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3"
+  }
+}
