@@ -1,0 +1,23 @@
+import { ServiceKey, ServiceScope } from '@microsoft/sp-core-library';
+import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
+import { PageContext } from '@microsoft/sp-page-context';
+
+export interface I{NameOfService} {}
+
+export class {NameOfService} implements I{NameOfService} {
+  public static readonly serviceKey: ServiceKey<I{NameOfService}> =
+    ServiceKey.create<{NameOfService}>(
+      'SPFxAppDev:I{NameOfService}',
+      {NameOfService}
+    );
+
+  private spHttpClient: SPHttpClient;
+  private pageContext: PageContext;
+
+  constructor(serviceScope: ServiceScope) {
+    serviceScope.whenFinished(() => {
+      this.spHttpClient = serviceScope.consume(SPHttpClient.serviceKey);
+      this.pageContext = serviceScope.consume(PageContext.serviceKey);
+    });
+  }
+}
