@@ -1,21 +1,22 @@
-# spfxappdev-init
+# @spfxappdev/cli
 
-[![npm version](https://badge.fury.io/js/spfxappdev-init.svg)](https://badge.fury.io/js/spfxappdev-init)
+[![npm version](https://badge.fury.io/js/@spfxappdev%2Fcli.svg)](https://badge.fury.io/js/@spfxappdev%2Fcli.svg)
 
-A command line utility, which modifies your SharePoint Framework solution, so that you can use `alias`-paths instead of relative paths. 
-Also, an automatic "version increase" task (gulp) is included and you can build, version increment, bundle and package solution with just one `npm` command
+**@spfxappdev/cli** is a command line interface (CLI). It is an utility tool during SPFx development. It allows you to set up your SPFx project with one command. So you can modify your SharePoint Framework solution to use `alias` paths instead of relative paths. 
+Also, an automatic `version increment` task (gulp) is included and you can build, increment the version, bundle and package the solution with just one `npm` command. You can create Azure DevOps Build Pipeline definitions (yaml file), services and models. It also comes with its own ESLint and TypeScript `compilerOptions` rules without changing the original ones. And it will (soon) be possible to store own templates and settings to not have to fall to the default rules/settings from the CLI. So you always have the configuration of a project (which is most likely always the same) done with a single command. And yes, I have to admit the rules and settings match my typical settings and configurations. But since I didn't want to keep doing the same steps for every project, I decided to develop this CLI to make my life easier. Maybe you like my CLI too. I am also open for improvement suggestions.
+
 
 ---
 
 ## Installation
 
-`npm i spfxappdev-init -g`
+`npm i @spfxappdev/cli -g`
 
 ## Usage
 
-1. Run `npm i spfxappdev-init -g`
+1. Run `npm i @spfxappdev/cli -g`
 2. Open a command line in a folder with your SharePoint Framework solution you want modify/extend.
-3. Run `spfxappdev-init`
+3. Run `spfxappdev init`
 
 After you have executed the command, the following files have been modified/created:
 
@@ -58,7 +59,7 @@ import HelloWorldWebPartComponent from ' @webparts/helloworld/components/HelloWo
 import { MyComponent } from '@components/MyComponent';
 ```
 
-If you run `spfxappdev-init` the following aliases are registered:
+If you run `spfxappdev init` the following aliases are registered:
 
 ```typescript
 "@webparts": "src/webparts",
@@ -77,7 +78,7 @@ Open the newly created `@spfxappdev/customAlias.js` file and register additional
 #### Example
 
 ```typescript
-generatedConfiguration.resolve.alias['@apps'] = path.resolve(__dirname, 'lib/extensions');
+generatedConfiguration.resolve.alias['@apps'] = path.resolve(__dirname, '..', 'lib/extensions');
 ```
 
 > NOTE: In this file, you should use the `lib` folder instead of `src`.
@@ -92,10 +93,10 @@ function resolveCustomAlias(build) {
             if (!generatedConfiguration.resolve.alias) {
                 generatedConfiguration.resolve.alias = {};
             }
-            generatedConfiguration.resolve.alias['@webparts'] = path.resolve(__dirname, 'lib/webparts');
-            generatedConfiguration.resolve.alias['@components'] = path.resolve(__dirname, 'lib/components');
-            generatedConfiguration.resolve.alias['@src'] = path.resolve(__dirname, 'lib');
-            generatedConfiguration.resolve.alias['@apps'] = path.resolve(__dirname, 'lib/extensions');
+            generatedConfiguration.resolve.alias['@webparts'] = path.resolve(__dirname, '..', 'lib/webparts');
+            generatedConfiguration.resolve.alias['@components'] = path.resolve(__dirname, '..', 'lib/components');
+            generatedConfiguration.resolve.alias['@src'] = path.resolve(__dirname, '..', 'lib');
+            generatedConfiguration.resolve.alias['@apps'] = path.resolve(__dirname, '..', 'lib/extensions');
             return generatedConfiguration;
         }
     });

@@ -2,6 +2,17 @@
 logs
 *.log
 npm-debug.log*
+@spfxappdev
+gulpfile.js
+_gulpfile.js
+@spfxappdev
+src/models
+src/services
+gulpfile.js
+_gulpfile.js
+ms-tsconfig.json
+ms-eslint.js
+.eslintrc.js
 
 # Dependency directories
 node_modules

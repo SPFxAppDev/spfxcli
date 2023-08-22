@@ -1,0 +1,4 @@
+import { I{NameOfModel} } from './';
+export class {NameOfModel} implements I{NameOfModel} {
+
+}
