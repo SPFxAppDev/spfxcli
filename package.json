@@ -28,8 +28,10 @@
   "homepage": "https://github.com/SPFxAppDev/spfxinit.git#readme",
   "dependencies": {
     "@spfxappdev/utility": "^1.4.0",
+    "@types/configstore": "^6.0.0",
     "chalk": "4.1.2",
     "cli-table3": "^0.6.3",
+    "configstore": "^6.0.0",
     "detect-indent": "6.1.0",
     "replace-in-file": "6.3.5",
     "yargs": "^17.7.2"
