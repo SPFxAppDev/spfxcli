@@ -3,6 +3,9 @@ import * as yargs from 'yargs';
 import { generateCommandDefinition } from './commands/generate/generateCommandDefinition';
 import { initCommandDefinition } from './commands/init/initCommandDefinition';
 import { rulesCommandDefinition } from './commands/rules/rulesCommandDefinition';
+import { CLIConfig } from './configstore';
+
+export const CLI_Config = new CLIConfig();
 
 const builder: any = yargs
   .scriptName('spfxappdev')
