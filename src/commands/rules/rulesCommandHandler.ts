@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
+import { CLI_Config } from '../../index';
 
 interface IFileInfo {
   folderPath: string;
@@ -108,9 +109,18 @@ export class RulesCommandHandler {
   }
 
   private getTemplatesFile(fileName: string) {
+    const customPathValue = CLI_Config.tryGetValue(
+      'customRulesSettings.templatesPath'
+    );
+    const customPath = path.join(customPathValue, '/', fileName);
+    const exists: boolean = fs.existsSync(customPath);
+
+    if (exists) {
+      return customPath;
+    }
+
     const basePath = 'templates/create/';
 
-    //return path.join(__dirname, '..', basePath + fileName);
     return path.join(__dirname, '../../', basePath + fileName);
   }
 }

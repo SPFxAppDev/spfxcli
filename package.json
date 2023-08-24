@@ -1,6 +1,6 @@
 {
   "name": "@spfxappdev/cli",
-  "version": "0.0.1-beta.1",
+  "version": "0.0.1-beta.5",
   "description": "",
   "main": "lib/index.js",
   "bin": {
@@ -31,13 +31,12 @@
     "@types/configstore": "^6.0.0",
     "chalk": "4.1.2",
     "cli-table3": "^0.6.3",
-    "configstore": "^6.0.0",
+    "configstore": "5.0.1",
     "detect-indent": "6.1.0",
     "replace-in-file": "6.3.5",
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@types/detect-indent": "^6.0.0",
     "@types/node": "^20.4.0",
     "@types/yargs": "^17.0.24",
     "cpy-cli": "^5.0.0",

@@ -7,6 +7,7 @@ export interface ICustomRulesSettings {
 }
 
 export interface IConfiguration {
+  packageManager: string;
   onInitCommand: IOnInitCommand;
   customRulesSettings: ICustomRulesSettings;
 }

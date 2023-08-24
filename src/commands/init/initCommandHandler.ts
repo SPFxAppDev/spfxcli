@@ -3,6 +3,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import replace from 'replace-in-file';
 import detectIndent from 'detect-indent';
+import { CLI_Config } from '../../index';
+import { execSync } from 'child_process';
+import { isNullOrEmpty } from '@spfxappdev/utility';
 
 const spfxAppDevFolderName: string = '@spfxappdev';
 
@@ -15,6 +18,7 @@ export class InitCommandHandler {
     this.extendTSConfigFile();
     this.extendFastServeWebPackIfExist();
     this.extendPackageFile();
+    this.installCustomPackages();
   }
 
   private createSPFxAppDevFolder(): void {
@@ -58,10 +62,12 @@ export class InitCommandHandler {
 /* CUSTOM ALIAS AND VERSION BUMP AND OTHER SPFxAppDev TASKS START */
 build.addSuppression(/Warning - \[sass\] The local CSS class/gi);
 
-const { resolveCustomAlias, registerBumbVersionTask, disableWarnings } = require('./@spfxappdev');
+const { resolveCustomAlias, registerBumbVersionTask, disableWarningsCommandDefinition } = require('./@spfxappdev');
 resolveCustomAlias(build);
+// You can use the "gulp bump-version" command. See here: https://spfx-app.dev/package-spfx-solution-with-one-command-and-automatically-increase-the-version
 registerBumbVersionTask(build);
-disableWarnings(build);
+// You can use the "gulp build --ship --warnoff" command. This prevents warnings from causing the build to fail
+disableWarningsCommandDefinition(build);
 /* CUSTOM ALIAS AND VERSION BUMP AND OTHER SPFxAppDev TASKS END */
 
 build.initialize(require('gulp'));
@@ -215,6 +221,52 @@ build.initialize(require('gulp'));
         "\u2713 You can now use 'npm run publish' to build, bundle, package the solution and automatically increment the version. Additionally, you can use aliases 'import { yourwebpart } from '@webparts/yourwebpart' instead of relative paths."
       )
     );
+  }
+
+  private installCustomPackages(): void {
+    let packagesToInstall = CLI_Config.tryGetValue('onInitCommand.npmPackages');
+
+    if (isNullOrEmpty(packagesToInstall)) {
+      return;
+    }
+
+    let packageManager = CLI_Config.tryGetValue('packageManager');
+
+    const supportedPackageManager: string[] = ['npm', 'pnpm', 'yarn'];
+
+    if (!supportedPackageManager.Contains(packageManager)) {
+      packageManager = 'npm';
+    }
+
+    try {
+      if (typeof packagesToInstall === 'string') {
+        packagesToInstall = JSON.parse(packagesToInstall);
+      }
+
+      (packagesToInstall as string[]).forEach((packageName: string) => {
+        try {
+          console.info(
+            chalk.blue(`\u24D8 Try installing npm package ${packageName}...`)
+          );
+
+          console.log(`Installing ${packageName}...`);
+          execSync(`${packageManager} install ${packageName}`, {
+            stdio: 'inherit',
+          });
+          console.log(
+            chalk.green(`\u2713 ${packageName} installed successfully.`)
+          );
+        } catch (error) {
+          console.error(chalk.red(`Error installing ${packageName}: ${error}`));
+        }
+      });
+    } catch (error) {
+      console.error(
+        chalk.red(
+          `Error parsing config value ${packagesToInstall}. It Should be an array of string values: ${error}`
+        )
+      );
+    }
   }
 
   private copyFileSync(source: string, target: string): void {

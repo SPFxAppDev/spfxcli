@@ -1,4 +1,4 @@
-export const disableWarnings = (build: any): void => {
+export const disableWarningsCommandDefinition = (build: any): void => {
   // Retrieve the current build config and check if there is a `warnoff` flag set
   const currentConfig = build.getConfig();
   const warningLevel = currentConfig.args['warnoff'];
@@ -8,15 +8,19 @@ export const disableWarnings = (build: any): void => {
     return;
   }
 
-  class CustomSPWebBuildRig extends build.SPWebBuildRig {
-    setupSharedConfig() {
+  const spWebBuildRig = new build.SPWebBuildRig();
+  const originalSetupSharedConfig = spWebBuildRig.setupSharedConfig;
+
+  Object.defineProperty(build.SPWebBuildRig.prototype, 'setupSharedConfig', {
+    value: function (this: any): void {
       build.log('IMPORTANT: Warnings will not fail the build.');
       build.mergeConfig({
         shouldWarningsFailBuild: false,
       });
-      super.setupSharedConfig();
-    }
-  }
 
-  build.rig = new CustomSPWebBuildRig();
+      originalSetupSharedConfig.apply(this);
+    },
+  });
+
+  build.rig = spWebBuildRig;
 };
