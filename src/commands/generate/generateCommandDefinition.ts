@@ -60,7 +60,7 @@ export const generateCommandDefinition: CommandModule = {
       choices: ['service', 's', 'model', 'm'],
       describe: 'The type to generate.',
       type: 'string',
-      demandOption: false,
+      demandOption: true,
     });
     yargs.positional('name', {
       describe: 'The name of the generated component.',
