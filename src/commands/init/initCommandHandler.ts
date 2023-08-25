@@ -5,7 +5,7 @@ import replace from 'replace-in-file';
 import detectIndent from 'detect-indent';
 import { CLI_Config } from '../../index';
 import { execSync } from 'child_process';
-import { isNullOrEmpty } from '@spfxappdev/utility';
+import { isNullOrEmpty, isset } from '@spfxappdev/utility';
 
 const spfxAppDevFolderName: string = '@spfxappdev';
 
@@ -210,6 +210,15 @@ build.initialize(require('gulp'));
       );
     }
 
+    if (packageJson.scripts['publish:nowarn']) {
+      console.warn(
+        chalk.yellow(
+          "\u26A0 Your npm 'publish:nowarn' command will be replaced."
+        )
+      );
+    }
+
+    packageJson.scripts['publish:nowarn'] = 'npm run publish -- --warnoff';
     packageJson.scripts['publish'] =
       'gulp clean && gulp build && gulp bundle --ship';
     packageJson.scripts['postpublish'] = 'gulp package-solution --ship';
@@ -224,17 +233,28 @@ build.initialize(require('gulp'));
   }
 
   private installCustomPackages(): void {
+    if (isset(this.argv.install) && this.argv.install === false) {
+      return;
+    }
+
     let packagesToInstall = CLI_Config.tryGetValue('onInitCommand.npmPackages');
 
     if (isNullOrEmpty(packagesToInstall)) {
       return;
     }
 
-    let packageManager = CLI_Config.tryGetValue('packageManager');
-
     const supportedPackageManager: string[] = ['npm', 'pnpm', 'yarn'];
+    let packageManager = this.argv.pm;
 
-    if (!supportedPackageManager.Contains(packageManager)) {
+    if (
+      isNullOrEmpty(packageManager) ||
+      (!isNullOrEmpty(packageManager) &&
+        !supportedPackageManager.Contains((mgr) => mgr == packageManager))
+    ) {
+      packageManager = CLI_Config.tryGetValue('packageManager');
+    }
+
+    if (!supportedPackageManager.Contains((mgr) => mgr == packageManager)) {
       packageManager = 'npm';
     }
 

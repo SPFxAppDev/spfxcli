@@ -8,19 +8,6 @@ export const disableWarningsCommandDefinition = (build: any): void => {
     return;
   }
 
-  const spWebBuildRig = new build.SPWebBuildRig();
-  const originalSetupSharedConfig = spWebBuildRig.setupSharedConfig;
-
-  Object.defineProperty(build.SPWebBuildRig.prototype, 'setupSharedConfig', {
-    value: function (this: any): void {
-      build.log('IMPORTANT: Warnings will not fail the build.');
-      build.mergeConfig({
-        shouldWarningsFailBuild: false,
-      });
-
-      originalSetupSharedConfig.apply(this);
-    },
-  });
-
-  build.rig = spWebBuildRig;
+  build.log('\x1b[33m IMPORTANT: Warnings will not fail the build. \x1b[0m');
+  build.addSuppression(/Warning/gi);
 };

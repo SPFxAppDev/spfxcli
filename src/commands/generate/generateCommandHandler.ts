@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 import { replaceTpl, replaceNonAlphanumeric } from '@spfxappdev/utility';
-import '@spfxappdev/utility/lib/extensions/StringExtensions';
+
 
 interface IFileInfo {
   folderPath: string;
