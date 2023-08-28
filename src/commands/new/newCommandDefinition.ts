@@ -3,6 +3,7 @@ import { NewCommandHandler } from './newCommandHandler';
 
 export const newCommandDefinition: CommandModule = {
   command: ['new [options...]'],
+  aliases: 'n',
   describe:
     'Create a new SPFx project by running yo @microsoft/sharepoint. You can use all available arguments of yo @microsoft/sharepoint, such as --skip-install or --package-manager. See yo @microsoft/sharepoint --help',
   builder: (yargs): any => {},

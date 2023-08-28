@@ -66,7 +66,6 @@ export class ConfigCommandHandler {
   }
 
   private getConfig(): void {
-    console.log('Try get value by key', this.argv.key);
     console.log(CLI_Config.tryGetValue(this.argv.key));
   }
 
@@ -84,7 +83,7 @@ export class ConfigCommandHandler {
       );
     }
 
-    CLI_Config.setConfig(this.argv.key, this.argv.value);
+    CLI_Config.setConfig(pathForKey[this.argv.key], this.argv.value);
   }
 
   private addValuesToConfig(): void {

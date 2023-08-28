@@ -3,7 +3,7 @@ import { InitCommandHandler } from './initCommandHandler';
 
 export const initCommandDefinition: CommandModule = {
   command: ['init'],
-  describe: 'Initialize the project',
+  describe: 'Initializes the project',
   builder: (yargs): any => {
     yargs.option('package-manager', {
       alias: 'pm',

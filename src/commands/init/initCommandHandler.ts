@@ -240,6 +240,11 @@ build.initialize(require('gulp'));
     let packagesToInstall = CLI_Config.tryGetValue('onInitCommand.npmPackages');
 
     if (isNullOrEmpty(packagesToInstall)) {
+      console.info(
+        chalk.blue(
+          `\u24D8 No custom npm packages are defined to install, installation of additional npm packages is skipped...`
+        )
+      );
       return;
     }
 
@@ -269,7 +274,6 @@ build.initialize(require('gulp'));
             chalk.blue(`\u24D8 Try installing npm package ${packageName}...`)
           );
 
-          console.log(`Installing ${packageName}...`);
           execSync(`${packageManager} install ${packageName}`, {
             stdio: 'inherit',
           });
