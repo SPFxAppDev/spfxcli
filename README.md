@@ -469,7 +469,7 @@ resolve: {
 
 As mentioned above, the CLI is based on my personal tips and experiences. Many of the commands or what they do are explained individually in the following articles:
 
-- [https://spfx-app.dev/my-personal-tips-how-to-configure-a-spfx-project-after-creation](My personal tips how to configure a SPFx project after creation)
-- [https://spfx-app.dev/using-pnpm-in-spfx-projects](Using pnpm in SPFx projects)
-- [https://spfx-app.dev/package-spfx-solution-with-one-command-and-automatically-increase-the-version](Package SPFx solution with one command and automatically increase the version)
-- [https://spfx-app.dev/spfx-azure-devops-pipeline-increment-version-push-to-repository-and-publish-package](SPFx Azure DevOps Pipeline: Increment version, push to repository and publish package)
+- [My personal tips how to configure a SPFx project after creation](https://spfx-app.dev/my-personal-tips-how-to-configure-a-spfx-project-after-creation)
+- [Using pnpm in SPFx projects](https://spfx-app.dev/using-pnpm-in-spfx-projects)
+- [Package SPFx solution with one command and automatically increase the version](https://spfx-app.dev/package-spfx-solution-with-one-command-and-automatically-increase-the-version)
+- [SPFx Azure DevOps Pipeline: Increment version, push to repository and publish package](https://spfx-app.dev/spfx-azure-devops-pipeline-increment-version-push-to-repository-and-publish-package)
