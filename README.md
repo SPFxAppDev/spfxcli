@@ -26,8 +26,8 @@ And yes, I have to admit the rules and settings match my typical settings and co
     + [Arguments](#arguments)
     + [Available (component) types](#available-component-types)
   * [spfxappdev init](#spfxappdev-init)
-  * [Options](#options)
-  * [Description](#description-1)
+    + [Options](#options)
+    + [Description](#description-1)
   * [spfxappdev custom-rules](#spfxappdev-custom-rules)
     + [Description](#description-2)
   * [spfxappdev config](#spfxappdev-config)
@@ -168,7 +168,7 @@ spfxappdev init [options]
 spfx init [options]
 ```
 
-### Options
+#### Options
 
 | Option                        | Alias | Description |
 |---------------------          |-------|-------------|
@@ -176,7 +176,7 @@ spfx init [options]
 | `--install` or `--no-install` | -     |  The specified `npmPackages` from the [configuration file](#spfxappdev-config) should (not) be installed (default: `true`)           |
 
 
-### Description
+#### Description
 
 After running the `spfxappdev init` command, you can use the "aliases" instead of relative paths ([see "How to use the alias paths" section](#how-to-use-the-alias-paths)).
 Also, you can run the `npm run publish` command. This command runs `gulp clean`, `gulp build`, `gulp bundle --ship` and `gulp package-solution --ship`. The newly registered gulp task `bump-version` is also executed and increases automatically the version of the solution.
