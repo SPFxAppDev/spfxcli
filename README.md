@@ -260,7 +260,7 @@ spfxappdev config set <key> <value>
 spfx c set <key> <value>
 ```
 
-Only `templatesPath` and `packageManager` properties can be set via `spfxappdev config set` command. For the settings key `packageManager` you should use the command `spfxappdev config add <key> <values...>`.
+Only `templatesPath` and `packageManager` properties can be set via `spfxappdev config set` command. For the settings key `npmPackages` you should use the command `spfxappdev config add <key> <values...>`.
 
 #### Example
 
@@ -280,15 +280,15 @@ spfxappdev config add <key> <values...>
 spfx c add <key> <values...>
 ```
 
-> Note: Currently only the `<key>` "`packageManager`" is supported
+> Note: Currently only the `<key>` "`npmPackages`" is supported
 
 #### Example
 
 ```bash
 #Adding multiple values at the same time
-spfxappdev config add packageManager @spfxappdev/utility @pnp/sp
+spfxappdev config add npmPackages @spfxappdev/utility @pnp/sp
 #Adding multiple values at the same time
-spfxappdev config add packageManager @spfxappdev/mapper
+spfxappdev config add npmPackages @spfxappdev/mapper
 ```
 ---
 ### spfxappdev config remove
@@ -300,15 +300,15 @@ spfxappdev config remove <key> <values...>
 spfx c remove <key> <values...>
 ```
 
-> Note: Currently only the `<key>` "`packageManager`" is supported
+> Note: Currently only the `<key>` "`npmPackages`" is supported
 
 #### Example
 
 ```bash
 #Removing multiple values at the same time
-spfxappdev config remove packageManager @spfxappdev/utility @pnp/sp
+spfxappdev config remove npmPackages @spfxappdev/utility @pnp/sp
 #Removing multiple values at the same time
-spfxappdev config remove packageManager @spfxappdev/mapper
+spfxappdev config remove npmPackages @spfxappdev/mapper
 ```
 
 ---
@@ -321,12 +321,12 @@ spfxappdev config remove-all <key>
 spfx c ra <key>
 ```
 
-> Note: Currently only the `<key>` "`packageManager`" is supported
+> Note: Currently only the `<key>` "`npmPackages`" is supported
 
 #### Example
 
 ```bash
-spfxappdev config remove-all packageManager
+spfxappdev config remove-all npmPackages
 ```
 
 > This command clears the list and creates an empty array `[]`.
