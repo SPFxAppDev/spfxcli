@@ -158,7 +158,7 @@ After you run the command, the following steps are taken:
 
 1. A new folder `@spfxappdev` is created in the root directory of the project
 2. The `gulpfile.js` file is modified: Aliases are registered, the `bump-version` task is defined and the possibility to build your solution in such a way that a warning will not cause the build process to fail.
-3. `tsconfig.json` is changed: Path` aliases and `BaseDir` are set.
+3. `tsconfig.json` is changed: Path `aliases` and `baseUrl` are set.
 4. `fast-serve/webpack.extend.js` is changed (if available): Aliases are registered
 5. The `package.json` file is modified: The `publish` and `publish:nowarn` commands are defined
 6. If you have defined additional `npm` packages and the `--no-install` option is not passed, then all defined packages will be installed ([See configuration section](#spfxappdev-config))

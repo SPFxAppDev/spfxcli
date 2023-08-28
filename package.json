@@ -1,6 +1,6 @@
 {
   "name": "@spfxappdev/cli",
-  "version": "0.0.1-beta.8",
+  "version": "1.0.0",
   "description": "",
   "main": "lib/index.js",
   "bin": {
@@ -24,9 +24,9 @@
   "author": "Seryoga",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/SPFxAppDev/spfxinit.git/issues"
+    "url": "https://github.com/SPFxAppDev/spfxcli/issues"
   },
-  "homepage": "https://github.com/SPFxAppDev/spfxinit.git#readme",
+  "homepage": "https://github.com/SPFxAppDev/spfxcli.git#readme",
   "dependencies": {
     "@spfxappdev/utility": "^1.4.0",
     "@types/configstore": "^6.0.0",
