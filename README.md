@@ -10,8 +10,51 @@ For example, if you run the `spfxappdev new` command, the `yo @microsoft/sharepo
 If the project is already created, you can run the `spfxappdev init` command. This command will register some `gulp` tasks or modify your SharePoint Framework solution to use `alias` paths instead of relative paths. 
 
 
-You [can configure the CLI the way you need it](#spfappdev-config). A kind of "my own SPFx generator for each project". Not everything is configurable yet, but the CLi will be further developed. 
+You [can configure the CLI the way you need it](#spfxappdev-config). A kind of "my own SPFx generator for each project". Not everything is configurable yet, but the CLi will be further developed. 
 And yes, I have to admit the rules and settings match my typical settings and configurations. But since I didn't want to keep doing the same steps for every project, I decided to develop this CLI to make my life easier. Maybe you like my CLI too. I am also open for improvement suggestions. [Read more about my tips on how to configure an SPFx project after it is created. This CLI is based on or modifies the project as described here](https://spfx-app.dev/my-personal-tips-how-to-configure-a-spfx-project-after-creation)
+
+## Content:
+
+- [Installation](#installation)
+- [Basics](#basics)
+- [CLI command reference](#cli-command-reference)
+  * [spfxappdev new](#spfxappdev-new)
+    + [Examples](#examples)
+  * [spfxappdev generate](#spfxappdev-generate)
+    + [Description](#description)
+    + [Examples](#examples-1)
+    + [Arguments](#arguments)
+    + [Available (component) types](#available-component-types)
+  * [spfxappdev init](#spfxappdev-init)
+  * [Options](#options)
+  * [Description](#description-1)
+  * [spfxappdev custom-rules](#spfxappdev-custom-rules)
+    + [Description](#description-2)
+  * [spfxappdev config](#spfxappdev-config)
+  * [Available settings](#available-settings)
+  * [spfxappdev config all](#spfxappdev-config-all)
+  * [spfxappdev config get](#spfxappdev-config-get)
+  * [spfxappdev config set](#spfxappdev-config-set)
+    + [Example](#example)
+  * [spfxappdev config add](#spfxappdev-config-add)
+    + [Example](#example-1)
+  * [spfxappdev config remove](#spfxappdev-config-remove)
+    + [Example](#example-2)
+  * [spfxappdev config remove-all](#spfxappdev-config-remove-all)
+    + [Example](#example-3)
+- [How to use custom templates](#how-to-use-custom-templates)
+- [How to use the alias paths](#how-to-use-the-alias-paths)
+- [How to register more aliases](#how-to-register-more-aliases)
+  * [@spfxappdev/customAlias.js](#spfxappdevcustomaliasjs)
+    + [Example](#example-4)
+    + [Full example](#full-example)
+  * [tsconfig.json](#tsconfigjson)
+    + [Example](#example-5)
+    + [Full example](#full-example-1)
+  * [fast-serve/webpack.extend.js](#fast-servewebpackextendjs)
+    + [Example](#example-6)
+    + [Full example](#full-example-2)
+- [Further links](#further-links)
 
 ## Installation
 
@@ -51,7 +94,7 @@ spfxappdev new [options]
 spfx n [options]  
 ```
 
-If no package manager is specified (via the `--package-manager` option), the package manager from your configuration is passed to the `new` command. ([See config command for more details](#spfappdev-config))
+If no package manager is specified (via the `--package-manager` option), the package manager from your configuration is passed to the `new` command. ([See config command for more details](#spfxappdev-config))
 
 > NOTE: When `pnpm` is used as package manager, the commands `pnpm config set auto-install-peers true --location project` and `pnpm config set shamefully-hoist true --location project` are executed. For more information, [read this post](https://spfx-app.dev/using-pnpm-in-spfx-projects)
 
@@ -118,7 +161,7 @@ After you run the command, the following steps are taken:
 3. `tsconfig.json` is changed: Path` aliases and `BaseDir` are set.
 4. `fast-serve/webpack.extend.js` is changed (if available): Aliases are registered
 5. The `package.json` file is modified: The `publish` and `publish:nowarn` commands are defined
-6. If you have defined additional `npm` packages and the `--no-install` option is not passed, then all defined packages will be installed ([See configuration section](#spfappdev-config))
+6. If you have defined additional `npm` packages and the `--no-install` option is not passed, then all defined packages will be installed ([See configuration section](#spfxappdev-config))
 
 ```bash
 spfxappdev init [options]
@@ -129,8 +172,8 @@ spfx init [options]
 
 | Option                        | Alias | Description |
 |---------------------          |-------|-------------|
-| `--package-manager`           | `--pm`| If additional packages are to be installed ([specified in config](#spfappdev-config)), the package manager can be specified here (`npm`, `pnpm` or `yarn`). Otherwise the package manager from the config (default `npm`) is used |
-| `--install` or `--no-install` | -     |  The specified `npmPackages` from the [configuration file](#spfappdev-config) should (not) be installed (default: `true`)           |
+| `--package-manager`           | `--pm`| If additional packages are to be installed ([specified in config](#spfxappdev-config)), the package manager can be specified here (`npm`, `pnpm` or `yarn`). Otherwise the package manager from the config (default `npm`) is used |
+| `--install` or `--no-install` | -     |  The specified `npmPackages` from the [configuration file](#spfxappdev-config) should (not) be installed (default: `true`)           |
 
 
 ### Description
@@ -152,7 +195,7 @@ gulp bump-version
 
 ### spfxappdev custom-rules
 
-Renames the default `.eslintrc.js` and `tsconfig.json` files and creates new files that inherit from the original files. This allows you to define your own ESLint rules. By default, the command defines custom rules that come with the CLI. But you can override the templates with the `config` command ([See configuration section](#spfappdev-config))
+Renames the default `.eslintrc.js` and `tsconfig.json` files and creates new files that inherit from the original files. This allows you to define your own ESLint rules. By default, the command defines custom rules that come with the CLI. But you can override the templates with the `config` command ([See section "How to use custom templates"](#how-to-use-custom-templates))
 
 ```bash
 spfxappdev custom-rules
@@ -225,7 +268,7 @@ Only `templatesPath` and `packageManager` properties can be set via `spfxappdev 
 spfxappdev config set templatesPath "D:\mySPFxCLITemplates"
 ```
 
-Now you can use your own templates for `.eslintrc.js` and `tsconfig.json`. Just create the files `eslint.js.txt` and `tsconfig.txt`. Open the files and paste the contents of [here](/tree/master/src/templates/create/eslint.js.txt) and [here](/tree/master/src/templates/create/tsconfig.txt) and set your own rules.
+Now you can use your own templates for `.eslintrc.js` and `tsconfig.json`. Just create the files `eslint.js.txt` and `tsconfig.txt`. Open the files and paste the contents of [here](/src/templates/create/eslint.js.txt) and [here](/src/templates/create/tsconfig.txt) and set your own rules.
 
 ---
 ### spfxappdev config add
@@ -294,7 +337,7 @@ Currently, the CLI only supports custom templates for the `.eslintrc.js` and `ts
 ```bash
 spfxappdev config set templatesPath "{YourTemplatesFolderPath}"
 ``` 
-Make sure that you have created the files named `eslint.js.txt` and `tsconfig.txt` in the folder. If one of these files does not exist, the default CLI templates will be used (only for the non-existing file). You can copy the original files from the `@spfxappdev/cli` npm package (`{pathtoyourglobalNPMFolder}\@spfxappdev\cli\lib\templates\create`). Or you can paste the contents of [here](/tree/master/src/templates/create/eslint.js.txt) and [here](/tree/master/src/templates/create/tsconfig.txt). Then you can change the templates as you like.
+Make sure that you have created the files named `eslint.js.txt` and `tsconfig.txt` in the folder. If one of these files does not exist, the default CLI templates will be used (only for the non-existing file). You can copy the original files from the `@spfxappdev/cli` npm package (`{pathtoyourglobalNPMFolder}\@spfxappdev\cli\lib\templates\create`). Or you can paste the contents of [here](/src/templates/create/eslint.js.txt) and [here](/src/templates/create/tsconfig.txt). Then you can change the templates as you like.
 
 ## How to use the alias paths
 
@@ -421,3 +464,12 @@ resolve: {
 /* CUSTOM ALIAS END */
 }
 ```
+
+## Further links
+
+As mentioned above, the CLI is based on my personal tips and experiences. Many of the commands or what they do are explained individually in the following articles:
+
+- [https://spfx-app.dev/my-personal-tips-how-to-configure-a-spfx-project-after-creation](My personal tips how to configure a SPFx project after creation)
+- [https://spfx-app.dev/using-pnpm-in-spfx-projects](Using pnpm in SPFx projects)
+- [https://spfx-app.dev/package-spfx-solution-with-one-command-and-automatically-increase-the-version](Package SPFx solution with one command and automatically increase the version)
+- [https://spfx-app.dev/spfx-azure-devops-pipeline-increment-version-push-to-repository-and-publish-package](SPFx Azure DevOps Pipeline: Increment version, push to repository and publish package)
