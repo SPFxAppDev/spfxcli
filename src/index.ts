@@ -11,6 +11,15 @@ import '@spfxappdev/utility/lib/extensions/ArrayExtensions';
 
 export const CLI_Config: CLIConfig = CLIConfig.Current();
 
+// const testCommand = {
+//   command: ['test [options...]'],
+//   aliases: 't',
+//   describe: 'Just for testing some code',
+//   builder: (yargs): any => {},
+//   handler: (argv) => {
+//   },
+// };
+
 const builder: any = yargs
   .scriptName('spfxappdev')
   .alias({ shortName: 'spfx' })
@@ -20,5 +29,6 @@ const builder: any = yargs
   .command(rulesCommandDefinition)
   .command(configCommandDefinition)
   .command(newCommandDefinition)
+  // .command(testCommand)
   .demandCommand(1, 'Please specify a command.')
   .help().argv;

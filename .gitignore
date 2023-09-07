@@ -8,6 +8,8 @@ _gulpfile.js
 @spfxappdev
 src/models
 src/services
+config
+spfxappdev-cli.config.json
 gulpfile.js
 _gulpfile.js
 ms-tsconfig.json

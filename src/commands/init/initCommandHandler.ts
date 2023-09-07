@@ -5,7 +5,7 @@ import replace from 'replace-in-file';
 import detectIndent from 'detect-indent';
 import { CLI_Config } from '../../index';
 import { execSync } from 'child_process';
-import { isNullOrEmpty, isset } from '@spfxappdev/utility';
+import { isNullOrEmpty, isset, replaceTpl } from '@spfxappdev/utility';
 
 const spfxAppDevFolderName: string = '@spfxappdev';
 
@@ -13,12 +13,13 @@ export class InitCommandHandler {
   constructor(private readonly argv) {}
 
   public execute(): void {
-    this.createSPFxAppDevFolder();
-    this.extendGulpFile();
-    this.extendTSConfigFile();
-    this.extendFastServeWebPackIfExist();
-    this.extendPackageFile();
-    this.installCustomPackages();
+    // this.createSPFxAppDevFolder();
+    // this.extendGulpFile();
+    // this.extendTSConfigFile();
+    // this.extendFastServeWebPackIfExist();
+    // this.extendPackageFile();
+    this.extendSPFxServeFile();
+    // this.installCustomPackages();
   }
 
   private createSPFxAppDevFolder(): void {
@@ -48,9 +49,7 @@ export class InitCommandHandler {
 
     if (gulpfileString.indexOf('./@spfxappdev') !== -1) {
       console.log(
-        chalk.green(
-          '\u2713 It looks like your gulpfile.js was patched before, skipping.'
-        )
+        chalk.green('\u2713 It looks like your gulpfile.js was patched before, skipping.')
       );
       return;
     }
@@ -89,44 +88,28 @@ build.initialize(require('gulp'));
 
     if (!compilerOptions) {
       console.warn(
-        chalk.yellow(
-          '\u26A0 compilerOptions were not found in your tsconfig.json, skip modifying'
-        )
+        chalk.yellow('\u26A0 compilerOptions were not found in your tsconfig.json, skip modifying')
       );
       return;
     }
 
     if (compilerOptions.baseUrl) {
-      console.warn(
-        chalk.yellow(
-          '\u26A0 Your tsconfig.json baseUrl  property will be replaced.'
-        )
-      );
+      console.warn(chalk.yellow('\u26A0 Your tsconfig.json baseUrl  property will be replaced.'));
     }
 
     compilerOptions.paths = compilerOptions.paths || {};
     if (compilerOptions.paths['@src/*']) {
-      console.warn(
-        chalk.yellow(
-          "\u26A0 Your tsconfig.json path  '@src/*' will be replaced."
-        )
-      );
+      console.warn(chalk.yellow("\u26A0 Your tsconfig.json path  '@src/*' will be replaced."));
     }
 
     if (compilerOptions.paths['@components/*']) {
       console.warn(
-        chalk.yellow(
-          "\u26A0 Your tsconfig.json path  '@components/*' will be replaced."
-        )
+        chalk.yellow("\u26A0 Your tsconfig.json path  '@components/*' will be replaced.")
       );
     }
 
     if (compilerOptions.paths['@webparts/*']) {
-      console.warn(
-        chalk.yellow(
-          "\u26A0 Your tsconfig.json path  '@webparts/*' will be replaced."
-        )
-      );
+      console.warn(chalk.yellow("\u26A0 Your tsconfig.json path  '@webparts/*' will be replaced."));
     }
 
     compilerOptions.baseUrl = '.';
@@ -140,16 +123,11 @@ build.initialize(require('gulp'));
   }
 
   private extendFastServeWebPackIfExist(): void {
-    const webpackPath = path.join(
-      process.cwd(),
-      'fast-serve/webpack.extend.js'
-    );
+    const webpackPath = path.join(process.cwd(), 'fast-serve/webpack.extend.js');
 
     if (!fs.existsSync(webpackPath)) {
       console.log(
-        chalk.green(
-          '\u2713 It looks like you have not installed spfx-fast-serve, skipping.'
-        )
+        chalk.green('\u2713 It looks like you have not installed spfx-fast-serve, skipping.')
       );
       return;
     }
@@ -186,9 +164,7 @@ build.initialize(require('gulp'));
 
     replace.sync(options);
 
-    console.log(
-      chalk.green('\u2713 fast-serve/webpack.extend.js successfully extended.')
-    );
+    console.log(chalk.green('\u2713 fast-serve/webpack.extend.js successfully extended.'));
   }
 
   private extendPackageFile(): void {
@@ -199,28 +175,19 @@ build.initialize(require('gulp'));
 
     packageJson.scripts = packageJson.scripts || {};
     if (packageJson.scripts['publish']) {
-      console.warn(
-        chalk.yellow("\u26A0 Your npm 'publish' command will be replaced.")
-      );
+      console.warn(chalk.yellow("\u26A0 Your npm 'publish' command will be replaced."));
     }
 
     if (packageJson.scripts['postpublish']) {
-      console.warn(
-        chalk.yellow("\u26A0 Your npm 'postpublish' command will be replaced.")
-      );
+      console.warn(chalk.yellow("\u26A0 Your npm 'postpublish' command will be replaced."));
     }
 
     if (packageJson.scripts['publish:nowarn']) {
-      console.warn(
-        chalk.yellow(
-          "\u26A0 Your npm 'publish:nowarn' command will be replaced."
-        )
-      );
+      console.warn(chalk.yellow("\u26A0 Your npm 'publish:nowarn' command will be replaced."));
     }
 
     packageJson.scripts['publish:nowarn'] = 'npm run publish -- --warnoff';
-    packageJson.scripts['publish'] =
-      'gulp clean && gulp build && gulp bundle --ship';
+    packageJson.scripts['publish'] = 'gulp clean && gulp build && gulp bundle --ship';
     packageJson.scripts['postpublish'] = 'gulp package-solution --ship';
 
     fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, indent));
@@ -230,6 +197,31 @@ build.initialize(require('gulp'));
         "\u2713 You can now use 'npm run publish' to build, bundle, package the solution and automatically increment the version. Additionally, you can use aliases 'import { yourwebpart } from '@webparts/yourwebpart' instead of relative paths."
       )
     );
+  }
+
+  private extendSPFxServeFile(): void {
+    const siteUrl = CLI_Config.tryGetValue('sharepoint.siteurl', true);
+
+    if (isNullOrEmpty(siteUrl)) {
+      return;
+    }
+
+    const servePath = path.join(process.cwd(), 'config/serve.json');
+    const serveConfigString = fs.readFileSync(servePath).toString();
+    const indent = detectIndent(serveConfigString).indent || '  ';
+    const serveJson = JSON.parse(serveConfigString);
+
+    if (!(serveJson.initialPage as string).Contains('{tenantDomain}', true)) {
+      return;
+    }
+
+    serveJson.initialPage = replaceTpl(serveJson.initialPage, {
+      tenantDomain: siteUrl.replace('https://', ''),
+    });
+
+    fs.writeFileSync(servePath, JSON.stringify(serveJson, null, indent));
+
+    console.log(chalk.green('\u2713 config/serve.json successfully extended.'));
   }
 
   private installCustomPackages(): void {
@@ -270,16 +262,12 @@ build.initialize(require('gulp'));
 
       (packagesToInstall as string[]).forEach((packageName: string) => {
         try {
-          console.info(
-            chalk.blue(`\u24D8 Try installing npm package ${packageName}...`)
-          );
+          console.info(chalk.blue(`\u24D8 Try installing npm package ${packageName}...`));
 
           execSync(`${packageManager} install ${packageName}`, {
             stdio: 'inherit',
           });
-          console.log(
-            chalk.green(`\u2713 ${packageName} installed successfully.`)
-          );
+          console.log(chalk.green(`\u2713 ${packageName} installed successfully.`));
         } catch (error) {
           console.error(chalk.red(`Error installing ${packageName}: ${error}`));
         }

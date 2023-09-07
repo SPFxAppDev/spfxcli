@@ -1,28 +1,18 @@
-import Configstore from 'configstore';
-import * as fs from 'fs';
 import { defaultConfig } from './defaultConfig';
-import * as path from 'path';
-import {
-  getDeepOrDefault,
-  isNullOrEmpty,
-  issetDeep,
-} from '@spfxappdev/utility';
-
-const packagePath = path.join(__dirname, '../../package.json');
-const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+import { getDeepOrDefault, isNullOrEmpty, issetDeep } from '@spfxappdev/utility';
+import { LocalConfigStore } from './LocalConfigStore';
+import { GlobalConfigStore } from './GlobalConfigStore';
 
 export class CLIConfig {
-  private configName: string;
-
-  private config: Configstore;
-
   private static currentInstance: CLIConfig = null;
 
+  private readonly localStore: LocalConfigStore;
+
+  private readonly globalStore: GlobalConfigStore;
+
   private constructor() {
-    this.configName = packageJson.name;
-    this.config = new Configstore(this.configName, {
-      ...defaultConfig,
-    });
+    this.localStore = LocalConfigStore.Current();
+    this.globalStore = GlobalConfigStore.Current();
   }
 
   public static Current(): CLIConfig {
@@ -33,22 +23,32 @@ export class CLIConfig {
     return CLIConfig.currentInstance;
   }
 
-  public tryGetValue(path: string): any {
-    const allProperties = this.config.all;
+  public tryGetValue(path: string, local: boolean = false): any {
+    const allProperties = local ? this.localStore.getAll() : this.globalStore.getAll();
 
     const defaultValue = getDeepOrDefault(defaultConfig, path);
     return getDeepOrDefault(allProperties, path, defaultValue);
   }
 
-  public getAll(): any {
-    return { ...this.config.all };
+  public getAll(local: boolean = false): any {
+    const allProperties = local ? this.localStore.getAll() : this.globalStore.getAll();
+    return { ...allProperties };
   }
 
-  public setConfig(key: string, value: any): any {
+  public setConfig(key: string, value: any, local: boolean = false): any {
     if (!issetDeep(defaultConfig, key)) {
       return console.log('This is a not supported key');
     }
 
-    this.config.set(key, value);
+    if (local) {
+      this.localStore.setConfig(key, value);
+      return;
+    }
+
+    this.globalStore.setConfig(key, value);
+  }
+
+  public createLocalConfigFile(): void {
+    this.localStore.createLocalConfigFile();
   }
 }

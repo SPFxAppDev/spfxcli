@@ -1,18 +1,24 @@
-import { isset } from '@spfxappdev/utility';
+import { extend, isset } from '@spfxappdev/utility';
 import { CLI_Config } from '../../index';
-import {
-  allowedValues,
-  pathForKey,
-  supportedPackageManager,
-} from './constants';
+import { allowedValues, pathForKey, supportedPackageManager } from './constants';
 import chalk from 'chalk';
 import * as Table from 'cli-table3';
+import * as fs from 'fs';
+import * as path from 'path';
+import detectIndent from 'detect-indent';
+import { SPCredentialManager } from '../../sharepoint/SPCredentialManager';
 
 export class ConfigCommandHandler {
+  private readonly localConfigFileName: string = 'spfxappdev-cli.config.json';
+
   constructor(private readonly argv) {}
 
+  private get useLocalConfig(): boolean {
+    return this.argv.local || false;
+  }
+
   public execute(
-    commandType: 'all' | 'set' | 'get' | 'add' | 'remove' | 'removeAll'
+    commandType: 'all' | 'set' | 'get' | 'add' | 'remove' | 'removeAll' | 'create'
   ): void {
     if (commandType === 'all') {
       return this.showConfig();
@@ -38,6 +44,10 @@ export class ConfigCommandHandler {
       return this.removeAllValuesFromConfig();
     }
 
+    if (commandType === 'create') {
+      return this.createLocalConfigFile();
+    }
+
     console.error('NO COMMAND SET');
   }
 
@@ -58,7 +68,7 @@ export class ConfigCommandHandler {
     });
 
     for (const key of allowedValues) {
-      const value = CLI_Config.tryGetValue(pathForKey[key]);
+      const value = CLI_Config.tryGetValue(pathForKey[key], this.useLocalConfig);
       table.push([chalk.green(key), chalk.cyan(value)]);
     }
 
@@ -66,7 +76,7 @@ export class ConfigCommandHandler {
   }
 
   private getConfig(): void {
-    console.log(CLI_Config.tryGetValue(this.argv.key));
+    console.log(CLI_Config.tryGetValue(this.argv.key, this.useLocalConfig));
   }
 
   private setConfig(): void {
@@ -83,13 +93,19 @@ export class ConfigCommandHandler {
       );
     }
 
-    CLI_Config.setConfig(pathForKey[this.argv.key], this.argv.value);
+    let value = this.argv.value;
+    if (this.argv.key === 'password') {
+      const spCredManager: SPCredentialManager = new SPCredentialManager(this.argv);
+      value = spCredManager.createEncryptedPassword(value, this.argv.local || false);
+    }
+
+    CLI_Config.setConfig(pathForKey[this.argv.key], value, this.useLocalConfig);
   }
 
   private addValuesToConfig(): void {
     const key = pathForKey[this.argv.key];
 
-    let currentValues: string[] = CLI_Config.tryGetValue(key);
+    let currentValues: string[] = CLI_Config.tryGetValue(key, this.useLocalConfig);
 
     if (!isset(currentValues)) {
       currentValues = [];
@@ -97,19 +113,17 @@ export class ConfigCommandHandler {
 
     const values: string[] = this.argv.values;
 
-    let newValues = values.Where(
-      (v) => !currentValues.Contains((c) => c.Equals(v))
-    );
+    let newValues = values.Where((v) => !currentValues.Contains((c) => c.Equals(v)));
 
     newValues = [...currentValues, ...newValues];
 
-    CLI_Config.setConfig(key, newValues);
+    CLI_Config.setConfig(key, newValues, this.useLocalConfig);
   }
 
   private removeValuesFromConfig(): void {
     const key = pathForKey[this.argv.key];
 
-    let currentValues: string[] = CLI_Config.tryGetValue(key);
+    let currentValues: string[] = CLI_Config.tryGetValue(key, this.useLocalConfig);
 
     if (!isset(currentValues)) {
       currentValues = [];
@@ -117,15 +131,17 @@ export class ConfigCommandHandler {
 
     const values: string[] = this.argv.values;
 
-    let newValues = currentValues.Where(
-      (v) => !values.Contains((c) => c.Equals(v))
-    );
+    let newValues = currentValues.Where((v) => !values.Contains((c) => c.Equals(v)));
 
-    CLI_Config.setConfig(key, newValues);
+    CLI_Config.setConfig(key, newValues, this.useLocalConfig);
   }
 
   private removeAllValuesFromConfig(): void {
     const key = pathForKey[this.argv.key];
-    CLI_Config.setConfig(key, []);
+    CLI_Config.setConfig(key, [], this.useLocalConfig);
+  }
+
+  private createLocalConfigFile(): void {
+    CLI_Config.createLocalConfigFile();
   }
 }

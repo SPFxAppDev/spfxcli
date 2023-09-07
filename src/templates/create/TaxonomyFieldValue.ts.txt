@@ -1,0 +1,13 @@
+import { mapper } from '@spfxappdev/mapper'; 
+
+export class TaxonomyFieldValue {
+
+    @mapper( { nameOrPath: 'Label' } )
+    label: string;
+
+    @mapper( { nameOrPath: 'TermGuid' } )
+    termGuid: string;
+
+    @mapper( { nameOrPath: 'WssId' } )
+    wssId: number;
+}

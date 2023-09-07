@@ -25,6 +25,7 @@ And yes, I have to admit the rules and settings match my typical settings and co
     + [Examples](#examples-1)
     + [Arguments](#arguments)
     + [Available (component) types](#available-component-types)
+    + [Model Options](#model-options)
   * [spfxappdev init](#spfxappdev-init)
     + [Options](#options)
     + [Description](#description-1)
@@ -33,15 +34,22 @@ And yes, I have to admit the rules and settings match my typical settings and co
   * [spfxappdev config](#spfxappdev-config)
   * [Available settings](#available-settings)
   * [spfxappdev config all](#spfxappdev-config-all)
+    + [Options](#options-1)
   * [spfxappdev config get](#spfxappdev-config-get)
+    + [Options](#options-2)
   * [spfxappdev config set](#spfxappdev-config-set)
+    + [Options](#options-3)
     + [Example](#example)
   * [spfxappdev config add](#spfxappdev-config-add)
+    + [Options](#options-4)
     + [Example](#example-1)
   * [spfxappdev config remove](#spfxappdev-config-remove)
+    + [Options](#options-5)
     + [Example](#example-2)
   * [spfxappdev config remove-all](#spfxappdev-config-remove-all)
+    + [Options](#options-6)
     + [Example](#example-3)
+  * [spfxappdev config create](#spfxappdev-config-create)
 - [How to use custom templates](#how-to-use-custom-templates)
 - [How to use the alias paths](#how-to-use-the-alias-paths)
 - [How to register more aliases](#how-to-register-more-aliases)
@@ -85,6 +93,7 @@ spfxappdev init --help
 ## CLI command reference
 
 ### spfxappdev new
+![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
 Creates a new spfx project by running the `yo @microsoft/sharepoint` command. You can pass all options that `yo @microsoft/sharepoint` supports (you can get all available options by running `yo @microsoft/sharepoint --help`).
 
@@ -109,6 +118,7 @@ spfx n --framework react --skip-install --component-type "webpart" --component-n
 ---
 
 ### spfxappdev generate
+![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
 Generates and/or modifies files based on the specified type.
 
@@ -147,10 +157,27 @@ spfx g s News
 | `service`  | `s`         | Create a new service that can be consumed with the `serviceScope`. |
 | `model`    | `m`         | Create a new and empty model interface and class. |
 
+#### Model Options
+![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) 
+
+You can create a model based on a SharePoint list (fields). The only options required are `--list` OR `--listName` to tell the CLI that you want a model based on that specific list.
+
+| Option       | Alias       | Description |
+|------------|-------------|-------------|
+| `--list` | `--l` |   SharePoint web relative list URL e.g. `Lists/MyList` or `SitePages`.     |
+| `--listName` | `--ln` |   The Name/Title of the List     |
+| `--weburl` | `--u` |   `OPTIONAL:` You can specify an absolute web URL where the list is located. If this option is not set, the local or global settings will be used (property: `siteurl`). If the `siteurl` value from the configuration file is empty, the CLI will automatically ask for the web URL     |
+| `--username` | `--user` |   `OPTIONAL:` You can specify a login name for the user to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `username`). If the `username` value from the configuration file is empty, the CLI will automatically prompt for the username     |
+| `--password` | `--p` |   `OPTIONAL:` You can specify a password for the user to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `password`). If the `password` value from the configuration file is empty, the CLI will automatically prompt for the password     |
+| `--hidden` or `--no-hidden` |  |   Normally, the model is created with fields that are not "hidden". However, you can specify whether you want to include the hidden fields as well      |
+
+> Note: The SharePoint list based model generator needs the npm package `@spfxappdev/mapper` to map the internal field names to the (friendly) model properties. 
+
 
 ---
 
 ### spfxappdev init
+![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
 Initializes/configures the project.
 
@@ -161,7 +188,8 @@ After you run the command, the following steps are taken:
 3. `tsconfig.json` is changed: Path `aliases` and `baseUrl` are set.
 4. `fast-serve/webpack.extend.js` is changed (if available): Aliases are registered
 5. The `package.json` file is modified: The `publish` and `publish:nowarn` commands are defined
-6. If you have defined additional `npm` packages and the `--no-install` option is not passed, then all defined packages will be installed ([See configuration section](#spfxappdev-config))
+6. If a `siteurl` is set in the config file, then the `config/serve.json` is updated and the `{tenantDomain}` placeholder is replaced with the value from the config (![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green))
+7. If you have defined additional `npm` packages and the `--no-install` option is not passed, then all defined packages will be installed ([See configuration section](#spfxappdev-config))
 
 ```bash
 spfxappdev init [options]
@@ -194,6 +222,7 @@ gulp bump-version
 ---
 
 ### spfxappdev custom-rules
+![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
 Renames the default `.eslintrc.js` and `tsconfig.json` files and creates new files that inherit from the original files. This allows you to define your own ESLint rules. By default, the command defines custom rules that come with the CLI. But you can override the templates with the `config` command ([See section "How to use custom templates"](#how-to-use-custom-templates))
 
@@ -221,6 +250,8 @@ spfxappdev config
 spfx c
 ```
 
+> From version `1.1.0` there is the possibility to create a "local" configuration file. If one exists, the settings from the local file will take effect. If one or more properties do not exist in the local file, the values from the global configuration file are used.
+
 ### Available settings
 
 | Key                 | Default value | Description |
@@ -228,9 +259,13 @@ spfx c
 | `packageManager`    | `npm`         | For example, if the `init` or the `new` commands are executed and no explicit package manager is specified via the option `--package-manager`, the package manager defined here will be used (e.g. to install custom packages) |
 | `npmPackages`       | `[]`          | A list of npm packages to be installed when the `spfxappdev init` command is run |
 | `templatesPath`     | `{pathToYourGlobalNPMFolder}\@spfxappdev\cli\lib\templates\create`            | The location for the templates `.eslintrc.js` and `tsconfig.json` |
+| `username`       | `''`          |  The login name for the user to authenticate to Sharepoint (for Model creation for example) ![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) |
+| `password`       | `''`          |  The (encrypted) password for the user to authenticate to Sharepoint (for Model creation for example) ![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) |
+| `siteurl`       | `''`          |  The (absolute) website URL to be used in a SharePoint API request (e.g. for model creation or for the `config/serve.json` file and the `initialPage` property). ![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green)  |
 
 ---
 ### spfxappdev config all
+![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
 Displays all settings
 
@@ -239,8 +274,17 @@ spfxappdev config all
 spfx c all
 ```
 
+#### Options
+![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) 
+
+| Option       | Alias       | Description |
+|------------|-------------|-------------|
+| `--local` | `--l` |   If specified, the local configuration file is used.     |
+   
+
 ---
 ### spfxappdev config get
+![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
 Shows the value of the specified `<key>`
 
@@ -249,9 +293,16 @@ spfxappdev config get <key>
 spfx c get <key>
 ```
 
+#### Options
+![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) 
+
+| Option       | Alias       | Description |
+|------------|-------------|-------------|
+| `--local` | `--l` |   If specified, the local configuration file is used.     |
 
 ---
 ### spfxappdev config set
+![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
 Sets the specified `<value>` for the specified `<key>`
 
@@ -260,7 +311,14 @@ spfxappdev config set <key> <value>
 spfx c set <key> <value>
 ```
 
-Only `templatesPath` and `packageManager` properties can be set via `spfxappdev config set` command. For the settings key `npmPackages` you should use the command `spfxappdev config add <key> <values...>`.
+Only `templatesPath`, `packageManager`, `siteurl`, `username` and `password` properties can be set via `spfxappdev config set` command. For the settings key `npmPackages` you should use the command `spfxappdev config add <key> <values...>`.
+
+#### Options
+![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) 
+
+| Option       | Alias       | Description |
+|------------|-------------|-------------|
+| `--local` | `--l` |   If specified, the local configuration file is used.     |
 
 #### Example
 
@@ -272,6 +330,7 @@ Now you can use your own templates for `.eslintrc.js` and `tsconfig.json`. Just 
 
 ---
 ### spfxappdev config add
+![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
 Adds the specified value(s) for the specified `<key>`. This command is available only for `<key>` which stores a "list" of values. The existing values are not removed. The new values will be added to the list (at the end).
 
@@ -281,6 +340,13 @@ spfx c add <key> <values...>
 ```
 
 > Note: Currently only the `<key>` "`npmPackages`" is supported
+
+#### Options
+![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) 
+
+| Option       | Alias       | Description |
+|------------|-------------|-------------|
+| `--local` | `--l` |   If specified, the local configuration file is used.     |
 
 #### Example
 
@@ -292,6 +358,7 @@ spfxappdev config add npmPackages @spfxappdev/mapper
 ```
 ---
 ### spfxappdev config remove
+![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
 Removes the specified value(s) for the specified `<key>`. This command is available only for `<key>` which stores a "list" of values.
 
@@ -301,6 +368,13 @@ spfx c remove <key> <values...>
 ```
 
 > Note: Currently only the `<key>` "`npmPackages`" is supported
+
+#### Options
+![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) 
+
+| Option       | Alias       | Description |
+|------------|-------------|-------------|
+| `--local` | `--l` |   If specified, the local configuration file is used.     |
 
 #### Example
 
@@ -313,6 +387,7 @@ spfxappdev config remove npmPackages @spfxappdev/mapper
 
 ---
 ### spfxappdev config remove-all
+![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
 Removes all values for the specified `<key>`. This command is available only for `<key>` which stores a "list" of values.
 
@@ -323,6 +398,13 @@ spfx c ra <key>
 
 > Note: Currently only the `<key>` "`npmPackages`" is supported
 
+#### Options
+![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) 
+
+| Option       | Alias       | Description |
+|------------|-------------|-------------|
+| `--local` | `--l` |   If specified, the local configuration file is used.     |
+
 #### Example
 
 ```bash
@@ -330,6 +412,16 @@ spfxappdev config remove-all npmPackages
 ```
 
 > This command clears the list and creates an empty array `[]`.
+
+### spfxappdev config create
+![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green)
+
+Creates a new local configuration file based on the global file, but without the SharePoint password.
+
+```bash
+spfxappdev config create
+spfx c create
+```
 
 ## How to use custom templates
 Currently, the CLI only supports custom templates for the `.eslintrc.js` and `tsconfig.json` files. If you want to override the CLI default templates, you can set your own `templatesPath` value using the command:

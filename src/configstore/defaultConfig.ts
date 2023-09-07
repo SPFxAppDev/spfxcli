@@ -6,6 +6,11 @@ export const defaultConfig: IConfiguration = {
   onInitCommand: {
     npmPackages: [],
   },
+  sharepoint: {
+    siteurl: '',
+    password: '',
+    username: '',
+  },
   customRulesSettings: {
     templatesPath: path.join(__dirname, '../templates/create'),
   },

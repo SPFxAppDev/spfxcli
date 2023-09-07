@@ -1,6 +1,6 @@
 {
   "name": "@spfxappdev/cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "lib/index.js",
   "bin": {
@@ -11,6 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run cli -- --version",
     "precli": "tsc && rmdir /s /q .\\lib\\templates\\create && mkdir .\\lib\\templates\\create && copy .\\src\\templates\\create\\** .\\lib\\templates\\create\\",
+    "prepublish": "tsc && rmdir /s /q .\\lib\\templates\\create && mkdir .\\lib\\templates\\create && copy .\\src\\templates\\create\\** .\\lib\\templates\\create\\",
     "cli": "node lib/index.js",
     "copy": "cpy **/*.js* ../../lib/templates --parents --cwd=src/templates && cpy **/*.txt ../../lib/templates --parents --cwd=src/templates"
   },
@@ -33,6 +34,7 @@
     "chalk": "4.1.2",
     "cli-table3": "^0.6.3",
     "configstore": "5.0.1",
+    "crypto-js": "^4.1.1",
     "detect-indent": "6.1.0",
     "replace-in-file": "6.3.5",
     "yargs": "^17.7.2"
@@ -41,6 +43,7 @@
     "@types/node": "^20.4.0",
     "@types/yargs": "^17.0.24",
     "cpy-cli": "^5.0.0",
+    "sp-request": "^3.0.0",
     "typescript": "^5.1.6"
   }
 }

@@ -1,4 +1,5 @@
 import { I{NameOfModel} } from './';
+{AdditionalImports}
 export class {NameOfModel} implements I{NameOfModel} {
-
+    {ModelMembers}
 }

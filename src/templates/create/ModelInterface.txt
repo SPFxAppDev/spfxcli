@@ -1,3 +1,4 @@
+{AdditionalImports}
 export interface I{NameOfModel} {
-
+    {ModelMembers}
 }

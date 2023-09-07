@@ -51,7 +51,7 @@ for (const generateCommandChoice of generateCommandChoices) {
 
 export const generateCommandDefinition: CommandModule = {
   aliases: 'g',
-  command: ['generate <type> <name>'],
+  command: ['generate <type> <name> [options...]'],
   describe:
     'Generates and/or modifies files based on a type.\n Available choices are:\n' +
     generateCommandChoicesTable.toString(),
@@ -66,6 +66,42 @@ export const generateCommandDefinition: CommandModule = {
       describe: 'The name of the generated component.',
       demandOption: true,
       type: 'string',
+    });
+
+    yargs.options('listName', {
+      alias: 'ln',
+      describe: 'SharePoint List name',
+      demandOption: false,
+    });
+
+    yargs.options('list', {
+      alias: 'l',
+      describe: 'SharePoint web relative list URL e.g. Lists/MyList or SitePages',
+      demandOption: false,
+    });
+
+    yargs.options('username', {
+      alias: 'user',
+      describe: 'SharePoint username',
+      demandOption: false,
+    });
+
+    yargs.options('password', {
+      alias: 'p',
+      describe: 'The password to login',
+      demandOption: false,
+    });
+
+    yargs.options('weburl', {
+      alias: 'u',
+      describe: 'The absolute URL of the website where the list is located',
+      demandOption: false,
+    });
+
+    yargs.options('hidden', {
+      type: 'boolean',
+      describe: 'Create the model and include the hidden fields as well',
+      demandOption: false,
     });
   },
   handler: (argv) => {

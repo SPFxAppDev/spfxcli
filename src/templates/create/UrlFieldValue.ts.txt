@@ -1,0 +1,9 @@
+import { mapper } from '@spfxappdev/mapper'; 
+
+export class UrlFieldValue {
+    @mapper( { nameOrPath: 'Url' } )
+    url: string;
+
+    @mapper( { nameOrPath: 'Description' } )
+    description: string;
+}

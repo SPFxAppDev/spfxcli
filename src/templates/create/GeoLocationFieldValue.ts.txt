@@ -1,0 +1,16 @@
+import { mapper } from '@spfxappdev/mapper'; 
+
+export class GeoLocationFieldValue {
+
+    @mapper( { nameOrPath: 'Latitude' } )
+    latitude: number;
+
+    @mapper( { nameOrPath: 'Longitude' } )
+    longitude: number;
+
+    @mapper( { nameOrPath: 'Altitude' } )
+    altitude: number;
+
+    @mapper( { nameOrPath: 'Measure' } )
+    measure: number;
+}

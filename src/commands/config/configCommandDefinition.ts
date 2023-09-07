@@ -9,6 +9,14 @@ import {
 const showAllConfigCommandDefinition: yargs.CommandModule = {
   command: ['all'],
   describe: 'Display all config properties',
+  builder: (yargs): any => {
+    yargs.option('local', {
+      alias: 'l',
+      describe: 'If set, the local project configuration file is used',
+      type: 'boolean',
+      demandOption: false,
+    });
+  },
   handler: (argv) => {
     const handler = new ConfigCommandHandler(argv);
     handler.execute('all');
@@ -24,6 +32,13 @@ const getConfigCommandDefinition: yargs.CommandModule = {
       choices: allowedValues,
       type: 'string',
       demandOption: true,
+    });
+
+    yargs.option('local', {
+      alias: 'l',
+      describe: 'If set, the local project configuration file is used',
+      type: 'boolean',
+      demandOption: false,
     });
   },
   handler: (argv) => {
@@ -47,6 +62,13 @@ const setConfigCommandDefinition: yargs.CommandModule = {
       describe: 'Value to set for the key',
       demandOption: false,
       type: 'string',
+    });
+
+    yargs.option('local', {
+      alias: 'l',
+      describe: 'If set, the local project configuration file is used',
+      type: 'boolean',
+      demandOption: false,
     });
   },
   handler: (argv) => {
@@ -72,6 +94,13 @@ const addConfigCommandDefinition: yargs.CommandModule = {
       type: 'string',
       array: true,
     });
+
+    yargs.option('local', {
+      alias: 'l',
+      describe: 'If set, the local project configuration file is used',
+      type: 'boolean',
+      demandOption: false,
+    });
   },
   handler: (argv) => {
     const handler = new ConfigCommandHandler(argv);
@@ -96,6 +125,13 @@ const removeConfigCommandDefinition: yargs.CommandModule = {
       type: 'string',
       array: true,
     });
+
+    yargs.option('local', {
+      alias: 'l',
+      describe: 'If set, the local project configuration file is used',
+      type: 'boolean',
+      demandOption: false,
+    });
   },
   handler: (argv) => {
     const handler = new ConfigCommandHandler(argv);
@@ -114,10 +150,27 @@ const removeAllConfigCommandDefinition: yargs.CommandModule = {
       type: 'string',
       demandOption: true,
     });
+
+    yargs.option('local', {
+      alias: 'l',
+      describe: 'If set, the local project configuration file is used',
+      type: 'boolean',
+      demandOption: false,
+    });
   },
   handler: (argv) => {
     const handler = new ConfigCommandHandler(argv);
     handler.execute('removeAll');
+  },
+};
+
+const createLocalConfigCommandDefinition: yargs.CommandModule = {
+  command: ['create'],
+  describe:
+    'Creates a new local configuration file based on the global file, but without the SP credentials',
+  handler: (argv) => {
+    const handler = new ConfigCommandHandler(argv);
+    handler.execute('create');
   },
 };
 
@@ -132,6 +185,7 @@ export const configCommandDefinition: yargs.CommandModule = {
     yargs.command(addConfigCommandDefinition);
     yargs.command(removeConfigCommandDefinition);
     yargs.command(removeAllConfigCommandDefinition);
+    yargs.command(createLocalConfigCommandDefinition);
   },
   handler: (argv) => {
     yargs.showHelp();
