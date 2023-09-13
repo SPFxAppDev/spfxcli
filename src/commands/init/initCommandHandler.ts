@@ -229,7 +229,7 @@ build.initialize(require('gulp'));
       return;
     }
 
-    let packagesToInstall = CLI_Config.tryGetValue('onInitCommand.npmPackages');
+    let packagesToInstall = CLI_Config.tryGetValue('onInitCommand.npmPackages', true);
 
     if (isNullOrEmpty(packagesToInstall)) {
       console.info(
@@ -248,7 +248,7 @@ build.initialize(require('gulp'));
       (!isNullOrEmpty(packageManager) &&
         !supportedPackageManager.Contains((mgr) => mgr == packageManager))
     ) {
-      packageManager = CLI_Config.tryGetValue('packageManager');
+      packageManager = CLI_Config.tryGetValue('packageManager', true);
     }
 
     if (!supportedPackageManager.Contains((mgr) => mgr == packageManager)) {
