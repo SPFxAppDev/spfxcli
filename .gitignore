@@ -8,7 +8,8 @@ _gulpfile.js
 @spfxappdev
 src/models
 src/services
-config
+config/package-solution.json
+config/serve.json
 spfxappdev-cli.config.json
 gulpfile.js
 _gulpfile.js

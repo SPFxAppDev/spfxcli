@@ -13,13 +13,13 @@ export class InitCommandHandler {
   constructor(private readonly argv) {}
 
   public execute(): void {
-    // this.createSPFxAppDevFolder();
-    // this.extendGulpFile();
-    // this.extendTSConfigFile();
-    // this.extendFastServeWebPackIfExist();
-    // this.extendPackageFile();
+    this.createSPFxAppDevFolder();
+    this.extendGulpFile();
+    this.extendTSConfigFile();
+    this.extendFastServeWebPackIfExist();
+    this.extendPackageFile();
     this.extendSPFxServeFile();
-    // this.installCustomPackages();
+    this.installCustomPackages();
   }
 
   private createSPFxAppDevFolder(): void {
