@@ -5,6 +5,7 @@ module.exports = {
     {
       files: ['*.ts', '*.tsx'],
       rules: {
+        '@rushstack/no-new-null': 0,
         // STANDARDIZED BY:   @typescript-eslint\eslint-plugin\dist\configs\recommended.json
         //
         // RATIONALE:         The "any" keyword disables static type checking, the main benefit of using TypeScript.

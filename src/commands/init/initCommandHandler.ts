@@ -59,7 +59,7 @@ export class InitCommandHandler {
       from: /build\.initialize.*/g,
       to: `
 /* CUSTOM ALIAS AND VERSION BUMP AND OTHER SPFxAppDev TASKS START */
-build.addSuppression(/Warning - \[sass\] The local CSS class/gi);
+build.addSuppression(/Warning - \[sass\] The local CSS class/gi); 
 
 const { resolveCustomAlias, registerBumbVersionTask, disableWarningsCommandDefinition } = require('./@spfxappdev');
 resolveCustomAlias(build);
