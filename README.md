@@ -4,7 +4,7 @@
 
 The **@spfxappdev/cli** is a command-line interface (CLI) tool that helps you to initialize and develop your SPFx (SharePoint Framework) applications. 
 
-It assists in multiple ways, including creating a new project with your preferred package manager (defined globally), initializing your preferred settings after creating the project and scaffolding services or models. 
+It assists in multiple ways, including creating a new project with your preferred package manager, initializing your preferred settings after creating the project and scaffolding services or models. 
 
 For example, if you run the `spfxappdev new` command, the `yo @microsoft/sharepoint` command is automatically invoked and your configured package manager is passed as option.
 If the project is already created, you can run the `spfxappdev init` command. This command will register some `gulp` tasks or modify your SharePoint Framework solution to use `alias` paths instead of relative paths. 

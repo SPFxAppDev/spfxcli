@@ -16,23 +16,20 @@ export class NewCommandHandler {
 
   private runYoMicrosoftSharePoint(): void {
     this.createArrayForArgumentsToPass();
-    this.setPackageManagerOption();
+    const pkgMgr: string = this.setPackageManagerOption();
 
     let command = 'yo @microsoft/sharepoint ';
     try {
-      command += this.options.join(' ');
-      if (
-        !isNullOrEmpty(this.options['pm']) &&
-        (this.options['pm'] as string).Equals('pnpm')
-      ) {
+      if (!isNullOrEmpty(pkgMgr) && pkgMgr.Equals('pnpm')) {
         execSync(`pnpm config set auto-install-peers true --location project`, {
           stdio: 'inherit',
         });
-
         execSync(`pnpm config set shamefully-hoist true --location project`, {
           stdio: 'inherit',
         });
       }
+
+      command += this.options.join(' ');
 
       execSync(`${command}`, {
         stdio: 'inherit',
@@ -69,7 +66,7 @@ export class NewCommandHandler {
     });
   }
 
-  private setPackageManagerOption(): void {
+  private setPackageManagerOption(): string {
     const supportedPackageManager: string[] = ['npm', 'pnpm', 'yarn'];
     let packageManager = this.argv.pm || this.argv.packageManager;
 
@@ -78,15 +75,17 @@ export class NewCommandHandler {
       (!isNullOrEmpty(packageManager) &&
         !supportedPackageManager.Contains((mgr) => mgr == packageManager))
     ) {
-      packageManager = CLI_Config.tryGetValue('packageManager');
+      packageManager = CLI_Config.tryGetValue('packageManager', true);
     }
 
     if (!supportedPackageManager.Contains((mgr) => mgr == packageManager)) {
       packageManager = 'npm';
     }
 
-    this.options['pm'] = packageManager;
-    this.options['packageManager'] = packageManager;
-    this.options['package-manager'] = packageManager;
+    this.options.push(`--pm ${packageManager}`);
+    this.options.push(`--packageManager ${packageManager}`);
+    this.options.push(`--package-manager ${packageManager}`);
+
+    return packageManager;
   }
 }

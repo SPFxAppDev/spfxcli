@@ -109,9 +109,7 @@ export class RulesCommandHandler {
   }
 
   private getTemplatesFile(fileName: string) {
-    const customPathValue = CLI_Config.tryGetValue(
-      'customRulesSettings.templatesPath'
-    );
+    const customPathValue = CLI_Config.tryGetValue('customRulesSettings.templatesPath', true);
     const customPath = path.join(customPathValue, '/', fileName);
     const exists: boolean = fs.existsSync(customPath);
 
