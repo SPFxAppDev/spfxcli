@@ -164,11 +164,11 @@ You can create a model based on a SharePoint list (fields). The only options req
 
 | Option       | Alias       | Description |
 |------------|-------------|-------------|
-| `--list` | `--l` |   SharePoint web relative list URL e.g. `Lists/MyList` or `SitePages`.     |
-| `--listName` | `--ln` |   The Name/Title of the List     |
-| `--weburl` | `--u` |   `OPTIONAL:` You can specify an absolute web URL where the list is located. If this option is not set, the local or global settings will be used (property: `siteurl`). If the `siteurl` value from the configuration file is empty, the CLI will automatically ask for the web URL     |
-| `--username` | `--user` |   `OPTIONAL:` You can specify a login name for the user to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `username`). If the `username` value from the configuration file is empty, the CLI will automatically prompt for the username     |
-| `--password` | `--p` |   `OPTIONAL:` You can specify a password for the user to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `password`). If the `password` value from the configuration file is empty, the CLI will automatically prompt for the password     |
+| `--list` | `-l` |   SharePoint web relative list URL e.g. `Lists/MyList` or `SitePages`.     |
+| `--listName` | `-ln` |   The Name/Title of the List     |
+| `--weburl` | `-u` |   `OPTIONAL:` You can specify an absolute web URL where the list is located. If this option is not set, the local or global settings will be used (property: `siteurl`). If the `siteurl` value from the configuration file is empty, the CLI will automatically ask for the web URL     |
+| `--username` | `-user` |   `OPTIONAL:` You can specify a login name for the user to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `username`). If the `username` value from the configuration file is empty, the CLI will automatically prompt for the username     |
+| `--password` | `-p` |   `OPTIONAL:` You can specify a password for the user to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `password`). If the `password` value from the configuration file is empty, the CLI will automatically prompt for the password     |
 | `--hidden` or `--no-hidden` |  |   Normally, the model is created with fields that are not "hidden". However, you can specify whether you want to include the hidden fields as well      |
 
 > Note: The SharePoint list based model generator needs the npm package `@spfxappdev/mapper` to map the internal field names to the (friendly) model properties. 
@@ -200,7 +200,7 @@ spfx init [options]
 
 | Option                        | Alias | Description |
 |---------------------          |-------|-------------|
-| `--package-manager`           | `--pm`| If additional packages are to be installed ([specified in config](#spfxappdev-config)), the package manager can be specified here (`npm`, `pnpm` or `yarn`). Otherwise the package manager from the config (default `npm`) is used |
+| `--package-manager`           | `-pm`| If additional packages are to be installed ([specified in config](#spfxappdev-config)), the package manager can be specified here (`npm`, `pnpm` or `yarn`). Otherwise the package manager from the config (default `npm`) is used |
 | `--install` or `--no-install` | -     |  The specified `npmPackages` from the [configuration file](#spfxappdev-config) should (not) be installed (default: `true`)           |
 
 
@@ -279,7 +279,7 @@ spfx c all
 
 | Option       | Alias       | Description |
 |------------|-------------|-------------|
-| `--local` | `--l` |   If specified, the local configuration file is used.     |
+| `--local` | `-l` |   If specified, the local configuration file is used.     |
    
 
 ---
@@ -298,7 +298,7 @@ spfx c get <key>
 
 | Option       | Alias       | Description |
 |------------|-------------|-------------|
-| `--local` | `--l` |   If specified, the local configuration file is used.     |
+| `--local` | `-l` |   If specified, the local configuration file is used.     |
 
 ---
 ### spfxappdev config set
@@ -318,7 +318,7 @@ Only `templatesPath`, `packageManager`, `siteurl`, `username` and `password` pro
 
 | Option       | Alias       | Description |
 |------------|-------------|-------------|
-| `--local` | `--l` |   If specified, the local configuration file is used.     |
+| `--local` | `-l` |   If specified, the local configuration file is used.     |
 
 #### Example
 
@@ -346,7 +346,7 @@ spfx c add <key> <values...>
 
 | Option       | Alias       | Description |
 |------------|-------------|-------------|
-| `--local` | `--l` |   If specified, the local configuration file is used.     |
+| `--local` | `-l` |   If specified, the local configuration file is used.     |
 
 #### Example
 
@@ -374,7 +374,7 @@ spfx c remove <key> <values...>
 
 | Option       | Alias       | Description |
 |------------|-------------|-------------|
-| `--local` | `--l` |   If specified, the local configuration file is used.     |
+| `--local` | `-l` |   If specified, the local configuration file is used.     |
 
 #### Example
 
@@ -403,7 +403,7 @@ spfx c ra <key>
 
 | Option       | Alias       | Description |
 |------------|-------------|-------------|
-| `--local` | `--l` |   If specified, the local configuration file is used.     |
+| `--local` | `-l` |   If specified, the local configuration file is used.     |
 
 #### Example
 

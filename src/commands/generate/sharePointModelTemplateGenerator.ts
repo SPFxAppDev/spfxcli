@@ -109,7 +109,7 @@ export const FieldTypeTemplate: Record<string, TSFieldTemplate> = {
   },
   multichoice: {
     propertyTemplate: '{ModelPropertyName}: string[];',
-    mapperTemplate: `@mapper({ nameOrPath: '{EntityPropertyName}.results', {AdditionalMapperProperties} })`,
+    mapperTemplate: `@mapper({ nameOrPath: '{EntityPropertyName}', {AdditionalMapperProperties} })`,
   },
   gridchoice: {
     propertyTemplate: '{ModelPropertyName}: string;',
@@ -190,15 +190,15 @@ export const FieldTypeTemplate: Record<string, TSFieldTemplate> = {
   },
   taxonomyfieldtypemulti: {
     propertyTemplate: '{ModelPropertyName}: TaxonomyFieldValue[];',
-    mapperTemplate: `@mapper({ nameOrPath: '{EntityPropertyName}.results', type: TaxonomyFieldValue, {AdditionalMapperProperties} })`,
+    mapperTemplate: `@mapper({ nameOrPath: '{EntityPropertyName}', type: TaxonomyFieldValue, {AdditionalMapperProperties} })`,
   },
   lookupmulti: {
     propertyTemplate: '{ModelPropertyName}Id: number[];',
-    mapperTemplate: `@mapper({ nameOrPath: '{EntityPropertyName}Id.results', {AdditionalMapperProperties} })`,
+    mapperTemplate: `@mapper({ nameOrPath: '{EntityPropertyName}Id', {AdditionalMapperProperties} })`,
   },
   usermulti: {
     propertyTemplate: '{ModelPropertyName}Id: number[];',
-    mapperTemplate: `@mapper({ nameOrPath: '{EntityPropertyName}Id.results', {AdditionalMapperProperties} })`,
+    mapperTemplate: `@mapper({ nameOrPath: '{EntityPropertyName}Id', {AdditionalMapperProperties} })`,
   },
   location: {
     propertyTemplate: '{ModelPropertyName}: string;',

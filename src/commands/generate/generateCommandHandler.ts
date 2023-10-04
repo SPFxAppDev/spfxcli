@@ -160,9 +160,9 @@ export class GenerateCommandHandler {
 
     if (template.classContent.Contains('@mapper', true)) {
       console.log(
-          chalk.blue(
-            'A model was created based on SharePoint list boxes. The model uses the @spfxappdev/mapper decorators. Please make sure that you have installed the dependency via npm/pnpm/yarn i @spfxappdev/mapper.'
-          )
+        chalk.blue(
+          'A model was created based on SharePoint list. The model uses the @spfxappdev/mapper decorators. Please make sure that you have installed the dependency via npm/pnpm/yarn i @spfxappdev/mapper.'
+        )
       );
     }
 
