@@ -1,5 +1,7 @@
 const gulp = require('gulp');
-const gutil = require('gulp-util');
+const gulpLog = require('fancy-log');
+const through2 = require('through2');
+
 const fs = require('fs');
 
 const getJson = (file: string): any => {
@@ -12,48 +14,39 @@ export const registerBumbVersionTask = (build: any): void => {
     function (gulp: any, buildOptions: any, done: any) {
       const currentCommand = buildOptions.args._[0];
 
-      const skipFunc = gulp
-        .src('./config/package-solution.json')
-        .pipe(gutil.noop());
+      const skipFunc = gulp.src('./config/package-solution.json').pipe(through2.obj());
 
       if (typeof currentCommand != 'string') {
-        gutil.log('The current command is undefined, skip version bump');
+        gulpLog('The current command is undefined, skip version bump');
         return skipFunc;
       }
 
       const commandName = currentCommand.toLocaleLowerCase();
 
       if (commandName != 'bundle' && commandName != 'bump-version') {
-        gutil.log(
-          "The current command is not 'bundle' or 'bump-version', skip version bump"
-        );
+        gulpLog("The current command is not 'bundle' or 'bump-version', skip version bump");
         return skipFunc;
       }
 
-      const bumpVersion =
-        commandName == 'bump-version' || buildOptions.args['ship'] === true;
+      const bumpVersion = commandName == 'bump-version' || buildOptions.args['ship'] === true;
 
       if (!bumpVersion) {
-        gutil.log(
-          "The current command is not 'bump-version' or the --ship argument was not specified, skip version bump"
+        gulpLog(
+          "The current command is not 'bump-version' or the --ship argument was not specified, skip version bump",
         );
         return skipFunc;
       }
 
       const a = buildOptions.args;
 
-      const skipMajorVersion =
-        typeof a['major'] == 'undefined' || a['major'] === false;
+      const skipMajorVersion = typeof a['major'] == 'undefined' || a['major'] === false;
       const skipMinorVersion =
-        !skipMajorVersion ||
-        typeof a['minor'] == 'undefined' ||
-        a['minor'] === false;
-      const skipPatchVersion =
-        !skipMajorVersion || !skipMinorVersion || a['patch'] === false;
+        !skipMajorVersion || typeof a['minor'] == 'undefined' || a['minor'] === false;
+      const skipPatchVersion = !skipMajorVersion || !skipMinorVersion || a['patch'] === false;
 
       if (skipMajorVersion && skipMinorVersion && skipPatchVersion) {
-        gutil.log(
-          "skip version bump, because all specified arguments (major, minor, patch) are set to 'false'"
+        gulpLog(
+          "skip version bump, because all specified arguments (major, minor, patch) are set to 'false'",
         );
         return skipFunc;
       }
@@ -62,7 +55,7 @@ export const registerBumbVersionTask = (build: any): void => {
       const currentVersionNumber = String(pkgSolutionJson.solution.version);
       let nextVersionNumber = currentVersionNumber.slice();
       let nextVersionSplitted: any[] = nextVersionNumber.split('.');
-      gutil.log('Current version: ' + currentVersionNumber);
+      gulpLog('Current version: ' + currentVersionNumber);
 
       if (!skipMajorVersion) {
         nextVersionSplitted[0] = parseInt(nextVersionSplitted[0]) + 1;
@@ -84,27 +77,21 @@ export const registerBumbVersionTask = (build: any): void => {
 
       nextVersionNumber = nextVersionSplitted.join('.');
 
-      gutil.log('New version: ', nextVersionNumber);
+      gulpLog('New version: ', nextVersionNumber);
 
       pkgSolutionJson.solution.version = nextVersionNumber;
       fs.writeFile(
         './config/package-solution.json',
         JSON.stringify(pkgSolutionJson, null, 4),
-        () => {}
+        () => {},
       );
 
       const packageJson = getJson('./package.json');
       packageJson.version = nextVersionNumber.split('.').splice(0, 3).join('.');
-      fs.writeFile(
-        './package.json',
-        JSON.stringify(packageJson, null, 4),
-        () => {}
-      );
+      fs.writeFile('./package.json', JSON.stringify(packageJson, null, 4), () => {});
 
-      return gulp
-        .src('./config/package-solution.json')
-        .pipe(gulp.dest('./config'));
-    }
+      return gulp.src('./config/package-solution.json').pipe(gulp.dest('./config'));
+    },
   );
 
   let bumpVersionTask = build.task('bump-version', bumpVersionSubTask);

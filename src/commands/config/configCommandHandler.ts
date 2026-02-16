@@ -87,17 +87,17 @@ export class ConfigCommandHandler {
       return console.error(
         chalk.red(
           `The passed value is not valid. Supported package manager are: ${supportedPackageManager.join(
-            ', '
-          )}`
-        )
+            ', ',
+          )}`,
+        ),
       );
     }
 
     let value = this.argv.value;
-    if (this.argv.key === 'password') {
-      const spCredManager: SPCredentialManager = new SPCredentialManager(this.argv);
-      value = spCredManager.createEncryptedPassword(value, this.argv.local || false);
-    }
+    // if (this.argv.key === 'password') {
+    //   const spCredManager: SPCredentialManager = new SPCredentialManager(this.argv);
+    //   // value = spCredManager.createEncryptedPassword(value, this.argv.local || false);
+    // }
 
     CLI_Config.setConfig(pathForKey[this.argv.key], value, this.useLocalConfig);
   }

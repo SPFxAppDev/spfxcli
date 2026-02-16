@@ -29,16 +29,18 @@
   },
   "homepage": "https://github.com/SPFxAppDev/spfxcli.git#readme",
   "dependencies": {
+    "@azure/msal-node": "^5.0.4",
+    "@azure/msal-node-extensions": "^5.0.4",
+    "@pnp/nodejs": "^4.17.0",
+    "@pnp/sp": "^4.17.0",
     "@spfxappdev/utility": "^1.4.0",
     "@types/configstore": "^6.0.0",
     "chalk": "4.1.2",
     "cli-table3": "^0.6.3",
     "configstore": "5.0.1",
-    "crypto-js": "^4.1.1",
     "detect-indent": "6.1.0",
     "replace-in-file": "6.3.5",
-    "yargs": "^17.7.2",
-    "sp-request": "^3.0.0"
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
     "@types/node": "^20.4.0",

@@ -1,4 +1,3 @@
-import * as sprequest from 'sp-request';
 import {
   replaceTpl,
   replaceNonAlphanumeric,
@@ -7,15 +6,22 @@ import {
   isset,
   allAreNullOrEmpty,
   Uri,
-  isAnyNullOrEmpty,
 } from '@spfxappdev/utility';
+import { Configuration } from '@azure/msal-node';
+import { SPFI, spfi } from '@pnp/sp';
+import '@pnp/sp/webs';
+import '@pnp/sp/lists';
+import '@pnp/sp/fields';
+import { PublicClientApplication, ConfidentialClientApplication } from '@azure/msal-node';
+import { NodeFetch, SPDefault } from '@pnp/nodejs';
+import chalk from 'chalk';
+import { IFieldInfo } from '@pnp/sp/fields';
 
 export interface ISharePointModelOptions {
   webUrl: string;
   listUrl: string;
   listName: string;
-  username: string;
-  password: string;
+  authConfiguration: Configuration;
   includeHiddenFields: string;
   selectFields?: string;
 }
@@ -268,7 +274,10 @@ export class SharePointModelTemplateGenerator {
   public async generate(): Promise<ModelTemplate> {
     const returnValue: ModelTemplate = SharePointModelTemplateGenerator.EmptyModel;
 
-    if (isAnyNullOrEmpty(this.options.username, this.options.password)) {
+    if (
+      isNullOrEmpty(this.options.authConfiguration) ||
+      isNullOrEmpty(this.options.authConfiguration.auth.clientId)
+    ) {
       return returnValue;
     }
 
@@ -280,13 +289,6 @@ export class SharePointModelTemplateGenerator {
       hasGeoLocation: false,
     };
 
-    const authOptions = {
-      username: this.options.username,
-      password: this.options.password,
-    };
-
-    const spr = sprequest.create(authOptions);
-
     const listUrl = this.options.listUrl;
     const listTitle = this.options.listName;
 
@@ -294,102 +296,103 @@ export class SharePointModelTemplateGenerator {
       return returnValue;
     }
 
+    const sp = await this.getSPFI();
+
     const includeHiddenFields = this.options.includeHiddenFields || false;
 
     const endpoint = new Uri(this.options.webUrl);
+    let filter = 'Hidden eq false';
 
-    if (!isNullOrEmpty(listUrl)) {
-      const spListUri = new Uri(this.options.webUrl);
-      spListUri.Combine(listUrl);
-      endpoint.Combine(`/_api/web/GetList('${spListUri.Path}')/Fields`);
-    } else {
-      endpoint.Combine(`/_api/web/lists/GetByTitle('${listTitle}')/Fields`);
+    if (includeHiddenFields) {
+      filter += ' or Hidden eq true';
     }
 
-    //?$filter=Hidden eq false and ReadOnlyField eq false
-
-    endpoint.Combine(`?$filter=Hidden eq ${includeHiddenFields.toString()}`);
-
-    const result = await asyncFnAsResult(spr.get, spr, endpoint.toString());
-
-    if (!result.success) {
-      console.error('An error occurred', result.error);
-      return returnValue;
-    }
-
-    const classMember: string[] = [];
-    const interfaceMember: string[] = [];
-    const classImports: string[] = [];
-    const interfaceImports: string[] = [];
-
-    ((result.value as any).body.d.results as any[]).forEach((field: any) => {
-      if (NOT_SUPPORTED_FIELDS.indexOf(field.StaticName) !== -1) {
-        return;
+    try {
+      let allFields: IFieldInfo[];
+      if (!isNullOrEmpty(listUrl)) {
+        const spListUri = new Uri(this.options.webUrl);
+        spListUri.Combine(listUrl);
+        allFields = await sp.web.getList(spListUri.Path).fields.filter(filter)();
+      } else {
+        allFields = await sp.web.lists.getByTitle(listTitle).fields.filter(filter)();
       }
 
-      let isSystemDocsListLookup = field.SchemaXml.indexOf('List="Docs"') !== -1;
-      let isLookupListEmpty = !field.LookupList;
-      let isLookup = field.FieldTypeKind === 7;
+      const classMember: string[] = [];
+      const interfaceMember: string[] = [];
+      const classImports: string[] = [];
+      const interfaceImports: string[] = [];
 
-      if (isLookup && isLookupListEmpty && isSystemDocsListLookup && field.Hidden) {
-        return;
+      allFields.forEach((field: IFieldInfo) => {
+        if (NOT_SUPPORTED_FIELDS.indexOf(field.StaticName) !== -1) {
+          return;
+        }
+
+        let isSystemDocsListLookup = field.SchemaXml.indexOf('List="Docs"') !== -1;
+        let isLookupListEmpty = !(field as any).LookupList;
+        let isLookup = field.FieldTypeKind === 7;
+
+        if (isLookup && isLookupListEmpty && isSystemDocsListLookup && field.Hidden) {
+          return;
+        }
+
+        const fieldInfo: SPFieldModelInformation = this.getSPFieldModelInformation(field);
+
+        templateInfo.hasLookup = templateInfo.hasLookup || fieldInfo.FieldType === 7;
+        templateInfo.hasUrl = templateInfo.hasUrl || fieldInfo.FieldType === 11;
+        templateInfo.hasTaxonomy =
+          templateInfo.hasTaxonomy ||
+          fieldInfo.Type.Equals('TaxonomyFieldType') ||
+          fieldInfo.Type.Equals('TaxonomyFieldTypeMulti');
+        templateInfo.hasGeoLocation = templateInfo.hasGeoLocation || fieldInfo.FieldType === 31;
+
+        templateInfo.fields.push(fieldInfo);
+
+        classMember.push(fieldInfo.ResolvedTemplate.mapperTemplate);
+        classMember.push('\n\t');
+        classMember.push(`public ${fieldInfo.ResolvedTemplate.propertyTemplate}`);
+        classMember.push('\n');
+        classMember.push('\n\t');
+
+        interfaceMember.push(fieldInfo.ResolvedTemplate.propertyTemplate);
+        interfaceMember.push('\n\t');
+      });
+
+      if (isNullOrEmpty(templateInfo.fields)) {
+        return returnValue;
       }
 
-      const fieldInfo: SPFieldModelInformation = this.getSPFieldModelInformation(field);
+      returnValue.classContent = classMember.join('');
+      returnValue.interfaceContent = interfaceMember.join('');
 
-      templateInfo.hasLookup = templateInfo.hasLookup || fieldInfo.FieldType === 7;
-      templateInfo.hasUrl = templateInfo.hasUrl || fieldInfo.FieldType === 11;
-      templateInfo.hasTaxonomy =
-        templateInfo.hasTaxonomy ||
-        fieldInfo.Type.Equals('TaxonomyFieldType') ||
-        fieldInfo.Type.Equals('TaxonomyFieldTypeMulti');
-      templateInfo.hasGeoLocation = templateInfo.hasGeoLocation || fieldInfo.FieldType === 31;
+      if (templateInfo.hasUrl) {
+        classImports.push('UrlFieldValue');
+        interfaceImports.push('UrlFieldValue');
+      }
 
-      templateInfo.fields.push(fieldInfo);
+      if (templateInfo.hasTaxonomy) {
+        classImports.push('TaxonomyFieldValue');
+        interfaceImports.push('TaxonomyFieldValue');
+      }
 
-      classMember.push(fieldInfo.ResolvedTemplate.mapperTemplate);
-      classMember.push('\n\t');
-      classMember.push(`public ${fieldInfo.ResolvedTemplate.propertyTemplate}`);
-      classMember.push('\n');
-      classMember.push('\n\t');
+      if (templateInfo.hasGeoLocation) {
+        classImports.push('GeoLocationFieldValue');
+        interfaceImports.push('GeoLocationFieldValue');
+      }
 
-      interfaceMember.push(fieldInfo.ResolvedTemplate.propertyTemplate);
-      interfaceMember.push('\n\t');
-    });
+      returnValue.classImports += `import { mapper } from '@spfxappdev/mapper';`;
 
-    if (isNullOrEmpty(templateInfo.fields)) {
+      if (!isNullOrEmpty(classImports)) {
+        returnValue.classImports += `\nimport { ${classImports.join(', ')} } from './';`;
+      }
+
+      if (!isNullOrEmpty(interfaceImports)) {
+        returnValue.interfaceImports += `\nimport { ${interfaceImports.join(', ')} } from '../';`;
+      }
+
       return returnValue;
+    } catch (error) {
+      console.error('An error occurred', error);
     }
-
-    returnValue.classContent = classMember.join('');
-    returnValue.interfaceContent = interfaceMember.join('');
-
-    if (templateInfo.hasUrl) {
-      classImports.push('UrlFieldValue');
-      interfaceImports.push('UrlFieldValue');
-    }
-
-    if (templateInfo.hasTaxonomy) {
-      classImports.push('TaxonomyFieldValue');
-      interfaceImports.push('TaxonomyFieldValue');
-    }
-
-    if (templateInfo.hasGeoLocation) {
-      classImports.push('GeoLocationFieldValue');
-      interfaceImports.push('GeoLocationFieldValue');
-    }
-
-    returnValue.classImports += `import { mapper } from '@spfxappdev/mapper';`;
-
-    if (!isNullOrEmpty(classImports)) {
-      returnValue.classImports += `\nimport { ${classImports.join(', ')} } from './';`;
-    }
-
-    if (!isNullOrEmpty(interfaceImports)) {
-      returnValue.interfaceImports += `\nimport { ${interfaceImports.join(', ')} } from '../';`;
-    }
-
-    return returnValue;
   }
 
   private getSPFieldModelInformation(field: any): SPFieldModelInformation {
@@ -446,7 +449,7 @@ export class SharePointModelTemplateGenerator {
 
     fieldInfo.ResolvedTemplate.mapperTemplate = replaceTpl(
       modelPropertyType.mapperTemplate,
-      mapperData
+      mapperData,
     );
 
     fieldInfo.ResolvedTemplate.propertyTemplate = replaceTpl(modelPropertyType.propertyTemplate, {
@@ -454,5 +457,68 @@ export class SharePointModelTemplateGenerator {
     });
 
     return fieldInfo;
+  }
+
+  private async getSPFI(): Promise<SPFI> {
+    let clientApp: PublicClientApplication | ConfidentialClientApplication;
+
+    const useClientCredentialFlow = !isNullOrEmpty(
+      this.options.authConfiguration.auth.clientSecret,
+    );
+    if (useClientCredentialFlow) {
+      clientApp = new ConfidentialClientApplication(this.options.authConfiguration);
+    } else {
+      clientApp = new PublicClientApplication(this.options.authConfiguration);
+    }
+
+    return spfi(this.options.webUrl).using(NodeFetch(), SPDefault(), (instance) => {
+      instance.on.auth(async function (url, init) {
+        const scopes = [`${new URL(this.options.webUrl).origin}/.default`];
+
+        let result = null;
+
+        if (useClientCredentialFlow) {
+          result = await (
+            clientApp as ConfidentialClientApplication
+          ).acquireTokenByClientCredential({
+            scopes: scopes,
+          });
+        } else {
+          const accounts = await clientApp.getTokenCache().getAllAccounts();
+
+          if (accounts.length > 0) {
+            try {
+              result = await clientApp.acquireTokenSilent({ account: accounts[0], scopes });
+            } catch (e) {}
+          }
+
+          if (!result) {
+            result = await (clientApp as PublicClientApplication).acquireTokenByDeviceCode({
+              deviceCodeCallback: (res) => {
+                console.log(chalk.yellow('\n#################################################'));
+                console.log(res.message);
+                console.log(chalk.yellow('\n#################################################'));
+              },
+              scopes,
+            });
+          }
+        }
+
+        const accessToken = result.accessToken;
+
+        if (!init.headers) {
+          init.headers = {};
+        }
+
+        Object.assign(init.headers, {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json;odata=verbose',
+        });
+
+        return [url, init];
+      });
+
+      return instance;
+    });
   }
 }
