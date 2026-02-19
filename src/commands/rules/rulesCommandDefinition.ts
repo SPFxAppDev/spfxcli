@@ -1,5 +1,5 @@
 import { CommandModule } from 'yargs';
-import { RulesCommandHandler } from './rulesCommandHandler';
+import { RulesCommandHandler } from './rulesCommandHandler.js';
 
 export const rulesCommandDefinition: CommandModule = {
   command: ['custom-rules'],

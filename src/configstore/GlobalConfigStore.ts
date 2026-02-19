@@ -1,8 +1,14 @@
 import Configstore from 'configstore';
 import * as fs from 'fs';
-import { defaultConfig } from './defaultConfig';
+import { defaultConfig } from './defaultConfig.js';
 import * as path from 'path';
-import { getDeepOrDefault, isNullOrEmpty, issetDeep } from '@spfxappdev/utility';
+import spfxAppDevUtility from '@spfxappdev/utility';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const { getDeepOrDefault, isNullOrEmpty, issetDeep } = spfxAppDevUtility;
 
 const packagePath = path.join(__dirname, '../../package.json');
 const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));

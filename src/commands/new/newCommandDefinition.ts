@@ -1,5 +1,5 @@
 import { CommandModule } from 'yargs';
-import { NewCommandHandler } from './newCommandHandler';
+import { NewCommandHandler } from './newCommandHandler.js';
 
 export const newCommandDefinition: CommandModule = {
   command: ['new [options...]'],

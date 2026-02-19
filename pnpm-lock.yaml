@@ -11,6 +11,9 @@ dependencies:
   '@azure/msal-node-extensions':
     specifier: ^5.0.4
     version: 5.0.4
+  '@pnp/graph':
+    specifier: ^4.17.0
+    version: 4.17.0
   '@pnp/nodejs':
     specifier: ^4.17.0
     version: 4.17.0

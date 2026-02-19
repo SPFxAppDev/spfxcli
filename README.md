@@ -62,6 +62,7 @@ And yes, I have to admit the rules and settings match my typical settings and co
   * [fast-serve/webpack.extend.js](#fast-servewebpackextendjs)
     + [Example](#example-6)
     + [Full example](#full-example-2)
+- [Update v1 to v2](#update-v1-to-v2)
 - [Further links](#further-links)
 
 ## Installation
@@ -162,13 +163,16 @@ spfx g s News
 
 You can create a model based on a SharePoint list (fields). The only options required are `--list` OR `--listName` to tell the CLI that you want a model based on that specific list.
 
+>**Note:** The authentication model has changed since version 2.0.0. You can no longer log in with a username and password; you must now provide at least a client ID. If only the client ID is provided, "Device Code Flow" is used for authentication. If a client secret is also provided, then "Client Credential Flow" is used. For more details see: [Use authentication](#further-links)
+
+
 | Option       | Alias       | Description |
 |------------|-------------|-------------|
 | `--list` | `-l` |   SharePoint web relative list URL e.g. `Lists/MyList` or `SitePages`.     |
-| `--listName` | `-ln` |   The Name/Title of the List     |
+| `--listName` | `--ln` |   The Name/Title of the List     |
 | `--weburl` | `-u` |   `OPTIONAL:` You can specify an absolute web URL where the list is located. If this option is not set, the local or global settings will be used (property: `siteurl`). If the `siteurl` value from the configuration file is empty, the CLI will automatically ask for the web URL     |
-| `--username` | `-user` |   `OPTIONAL:` You can specify a login name for the user to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `username`). If the `username` value from the configuration file is empty, the CLI will automatically prompt for the username     |
-| `--password` | `-p` |   `OPTIONAL:` You can specify a password for the user to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `password`). If the `password` value from the configuration file is empty, the CLI will automatically prompt for the password     |
+| `--clientId` | `--client` |   `OPTIONAL:` You can specify a clientId to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `clientId`). If the `clientId` value from the configuration file is empty, the CLI will automatically prompt for the clientId     |
+| `--clientSecret` | `--secret` |   `OPTIONAL:` You can specify a clientSecret to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `clientSecret`). If the `clientSecret` value from the configuration file is empty, the CLI will automatically prompt for the clientSecret (Leave the field blank to use only the client ID and log in via device code (Browser).)     |
 | `--hidden` or `--no-hidden` |  |   Normally, the model is created with fields that are not "hidden". However, you can specify whether you want to include the hidden fields as well      |
 
 > Note: The SharePoint list based model generator needs the npm package `@spfxappdev/mapper` to map the internal field names to the (friendly) model properties. 
@@ -200,7 +204,7 @@ spfx init [options]
 
 | Option                        | Alias | Description |
 |---------------------          |-------|-------------|
-| `--package-manager`           | `-pm`| If additional packages are to be installed ([specified in config](#spfxappdev-config)), the package manager can be specified here (`npm`, `pnpm` or `yarn`). Otherwise the package manager from the config (default `npm`) is used |
+| `--package-manager`           | `--pm`| If additional packages are to be installed ([specified in config](#spfxappdev-config)), the package manager can be specified here (`npm`, `pnpm` or `yarn`). Otherwise the package manager from the config (default `npm`) is used |
 | `--install` or `--no-install` | -     |  The specified `npmPackages` from the [configuration file](#spfxappdev-config) should (not) be installed (default: `true`)           |
 
 
@@ -259,8 +263,8 @@ spfx c
 | `packageManager`    | `npm`         | For example, if the `init` or the `new` commands are executed and no explicit package manager is specified via the option `--package-manager`, the package manager defined here will be used (e.g. to install custom packages) |
 | `npmPackages`       | `[]`          | A list of npm packages to be installed when the `spfxappdev init` command is run |
 | `templatesPath`     | `{pathToYourGlobalNPMFolder}\@spfxappdev\cli\lib\templates\create`            | The location for the templates `.eslintrc.js` and `tsconfig.json` |
-| `username`       | `''`          |  The login name for the user to authenticate to Sharepoint (for Model creation for example) ![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) |
-| `password`       | `''`          |  The (encrypted) password for the user to authenticate to Sharepoint (for Model creation for example) ![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) |
+| `clientId`       | `''`          |  The clientId to authenticate to Sharepoint (for Model creation for example) ![since @spfxappdev/cli@2.0.0](https://img.shields.io/badge/since-v2.0.0-blue) |
+| `clientSecret`       | `''`          |  The clientSecret to authenticate to Sharepoint (for Model creation for example) ![since @spfxappdev/cli@2.0.0](https://img.shields.io/badge/since-v2.0.0-blue) |
 | `siteurl`       | `''`          |  The (absolute) website URL to be used in a SharePoint API request (e.g. for model creation or for the `config/serve.json` file and the `initialPage` property). ![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green)  |
 
 ---
@@ -311,7 +315,7 @@ spfxappdev config set <key> <value>
 spfx c set <key> <value>
 ```
 
-Only `templatesPath`, `packageManager`, `siteurl`, `username` and `password` properties can be set via `spfxappdev config set` command. For the settings key `npmPackages` you should use the command `spfxappdev config add <key> <values...>`.
+Only `templatesPath`, `packageManager`, `siteurl`, `clientId` and `clientSecret` properties can be set via `spfxappdev config set` command. For the settings key `npmPackages` you should use the command `spfxappdev config add <key> <values...>`.
 
 #### Options
 ![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green) 
@@ -416,7 +420,7 @@ spfxappdev config remove-all npmPackages
 ### spfxappdev config create
 ![since @spfxappdev/cli@1.1.0](https://img.shields.io/badge/since-v1.1.0-green)
 
-Creates a new local configuration file based on the global file, but without the SharePoint password.
+Creates a new local configuration file based on the global file.
 
 ```bash
 spfxappdev config create
@@ -556,6 +560,9 @@ resolve: {
 /* CUSTOM ALIAS END */
 }
 ```
+
+## Update v1 to v2
+
 
 ## Further links
 

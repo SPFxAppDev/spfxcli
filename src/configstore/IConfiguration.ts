@@ -8,8 +8,8 @@ export interface ICustomRulesSettings {
 
 export interface ISharePointSettings {
   siteurl: string;
-  password: string;
-  username: string;
+  clientId: string;
+  clientSecret: string;
 }
 
 export interface IConfiguration {

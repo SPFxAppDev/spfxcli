@@ -3,9 +3,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import replace from 'replace-in-file';
 import detectIndent from 'detect-indent';
-import { CLI_Config } from '../../index';
+import { CLI_Config } from '../../index.js';
 import { execSync } from 'child_process';
-import { isNullOrEmpty, isset, replaceTpl } from '@spfxappdev/utility';
+import { fileURLToPath } from 'url';
+import spfxAppDevUtility from '@spfxappdev/utility';
+const { isNullOrEmpty, isset, replaceTpl } = spfxAppDevUtility;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const spfxAppDevFolderName: string = '@spfxappdev';
 

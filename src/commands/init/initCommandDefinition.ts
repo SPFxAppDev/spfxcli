@@ -1,5 +1,5 @@
 import { CommandModule } from 'yargs';
-import { InitCommandHandler } from './initCommandHandler';
+import { InitCommandHandler } from './initCommandHandler.js';
 
 export const initCommandDefinition: CommandModule = {
   command: ['init'],

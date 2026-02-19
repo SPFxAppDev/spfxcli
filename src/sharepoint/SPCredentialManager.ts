@@ -1,7 +1,8 @@
-import { allAreNullOrEmpty, getDeepOrDefault, isNullOrEmpty, isset } from '@spfxappdev/utility';
-import { CLI_Config } from '../index';
-import { LocalConfigStore } from '../configstore';
+import { CLI_Config } from '../index.js';
+import { LocalConfigStore } from '../configstore/index.js';
 import { Configuration } from '@azure/msal-node';
+import spfxAppDevUtility from '@spfxappdev/utility';
+const { allAreNullOrEmpty, getDeepOrDefault, isNullOrEmpty, isset } = spfxAppDevUtility;
 
 export class SPCredentialManager {
   private readonly cliSecretKey: string = `SPFxAppDevSecretCLI_7105e8a7-2d3c-492a-803c-79ed74b2a1fd`;

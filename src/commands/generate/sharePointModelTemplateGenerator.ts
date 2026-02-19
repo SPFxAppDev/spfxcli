@@ -1,21 +1,17 @@
-import {
-  replaceTpl,
-  replaceNonAlphanumeric,
-  asyncFnAsResult,
-  isNullOrEmpty,
-  isset,
-  allAreNullOrEmpty,
-  Uri,
-} from '@spfxappdev/utility';
+import spfxAppDevUtility from '@spfxappdev/utility';
 import { Configuration } from '@azure/msal-node';
 import { SPFI, spfi } from '@pnp/sp';
-import '@pnp/sp/webs';
-import '@pnp/sp/lists';
-import '@pnp/sp/fields';
+import '@pnp/sp/webs/index.js';
+import '@pnp/sp/lists/index.js';
+import '@pnp/sp/fields/index.js';
+import { IWeb } from '@pnp/sp/webs/types.js';
 import { PublicClientApplication, ConfidentialClientApplication } from '@azure/msal-node';
 import { NodeFetch, SPDefault } from '@pnp/nodejs';
 import chalk from 'chalk';
-import { IFieldInfo } from '@pnp/sp/fields';
+import { IFieldInfo } from '@pnp/sp/fields/index.js';
+
+const { replaceTpl, replaceNonAlphanumeric, isNullOrEmpty, isset, allAreNullOrEmpty, Uri } =
+  spfxAppDevUtility;
 
 export interface ISharePointModelOptions {
   webUrl: string;
@@ -299,8 +295,6 @@ export class SharePointModelTemplateGenerator {
     const sp = await this.getSPFI();
 
     const includeHiddenFields = this.options.includeHiddenFields || false;
-
-    const endpoint = new Uri(this.options.webUrl);
     let filter = 'Hidden eq false';
 
     if (includeHiddenFields) {
@@ -312,9 +306,9 @@ export class SharePointModelTemplateGenerator {
       if (!isNullOrEmpty(listUrl)) {
         const spListUri = new Uri(this.options.webUrl);
         spListUri.Combine(listUrl);
-        allFields = await sp.web.getList(spListUri.Path).fields.filter(filter)();
+        allFields = await (sp as any).web.getList(spListUri.Path).fields.filter(filter)();
       } else {
-        allFields = await sp.web.lists.getByTitle(listTitle).fields.filter(filter)();
+        allFields = await (sp as any).web.lists.getByTitle(listTitle).fields.filter(filter)();
       }
 
       const classMember: string[] = [];
@@ -391,7 +385,8 @@ export class SharePointModelTemplateGenerator {
 
       return returnValue;
     } catch (error) {
-      console.error('An error occurred', error);
+      console.error(chalk.red(`An error occurred\n`), error);
+      return SharePointModelTemplateGenerator.EmptyModel;
     }
   }
 
@@ -471,10 +466,10 @@ export class SharePointModelTemplateGenerator {
       clientApp = new PublicClientApplication(this.options.authConfiguration);
     }
 
+    const scopes = [`${new URL(this.options.webUrl).origin}/.default`];
+
     return spfi(this.options.webUrl).using(NodeFetch(), SPDefault(), (instance) => {
       instance.on.auth(async function (url, init) {
-        const scopes = [`${new URL(this.options.webUrl).origin}/.default`];
-
         let result = null;
 
         if (useClientCredentialFlow) {
@@ -509,6 +504,8 @@ export class SharePointModelTemplateGenerator {
         if (!init.headers) {
           init.headers = {};
         }
+
+        console.log('SSC accesstoken', accessToken);
 
         Object.assign(init.headers, {
           Authorization: `Bearer ${accessToken}`,
