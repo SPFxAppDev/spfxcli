@@ -127,55 +127,55 @@ export class GenerateCommandHandler {
       .readFileSync(this.getTemplatesFile('ModelInterface.txt'))
       .toString();
 
-    // fs.writeFileSync(
-    //   fileInfoInterface.filePath,
-    //   replaceTpl(templateInterfaceContent, {
-    //     NameOfModel: modelName,
-    //     ModelMembers: template.interfaceContent,
-    //     AdditionalImports: template.interfaceImports,
-    //   }),
-    // );
+    fs.writeFileSync(
+      fileInfoInterface.filePath,
+      replaceTpl(templateInterfaceContent, {
+        NameOfModel: modelName,
+        ModelMembers: template.interfaceContent,
+        AdditionalImports: template.interfaceImports,
+      }),
+    );
 
-    // this.modifyIndexFile(
-    //   this.folderPaths.modelInterfaces,
-    //   `export * from './${fileInfoInterface.fileName.replace('.ts', '')}';`,
-    // );
+    this.modifyIndexFile(
+      this.folderPaths.modelInterfaces,
+      `export * from './${fileInfoInterface.fileName.replace('.ts', '')}';`,
+    );
 
-    // const fileInfo = this.generateFilePathAndCheckIfExists(
-    //   this.folderPaths.models,
-    //   `${modelName}.ts`,
-    // );
+    const fileInfo = this.generateFilePathAndCheckIfExists(
+      this.folderPaths.models,
+      `${modelName}.ts`,
+    );
 
-    // if (fileInfo.exists) {
-    //   console.warn(
-    //     chalk.yellow('A model with the given (file)name already exist, please use another name'),
-    //   );
-    //   return;
-    // }
+    if (fileInfo.exists) {
+      console.warn(
+        chalk.yellow('A model with the given (file)name already exist, please use another name'),
+      );
+      return;
+    }
 
-    // const templateContent = fs.readFileSync(this.getTemplatesFile('Model.txt')).toString();
+    const templateContent = fs.readFileSync(this.getTemplatesFile('Model.txt')).toString();
 
-    // fs.writeFileSync(
-    //   fileInfo.filePath,
-    //   replaceTpl(templateContent, {
-    //     NameOfModel: modelName,
-    //     ModelMembers: template.classContent,
-    //     AdditionalImports: template.classImports,
-    //   }),
-    // );
+    fs.writeFileSync(
+      fileInfo.filePath,
+      replaceTpl(templateContent, {
+        NameOfModel: modelName,
+        ModelMembers: template.classContent,
+        AdditionalImports: template.classImports,
+      }),
+    );
 
-    // if (template.classContent.Contains('@mapper', true)) {
-    //   console.log(
-    //     chalk.blue(
-    //       'A model was created based on SharePoint list. The model uses the @spfxappdev/mapper decorators. Please make sure that you have installed the dependency via npm/pnpm/yarn i @spfxappdev/mapper.',
-    //     ),
-    //   );
-    // }
+    if (template.classContent.Contains('@mapper', true)) {
+      console.log(
+        chalk.blue(
+          'A model was created based on SharePoint list. The model uses the @spfxappdev/mapper decorators. Please make sure that you have installed the dependency via npm/pnpm/yarn i @spfxappdev/mapper.',
+        ),
+      );
+    }
 
-    // this.modifyIndexFile(
-    //   this.folderPaths.models,
-    //   `export * from './${fileInfo.fileName.replace('.ts', '')}';`,
-    // );
+    this.modifyIndexFile(
+      this.folderPaths.models,
+      `export * from './${fileInfo.fileName.replace('.ts', '')}';`,
+    );
   }
 
   private async generateSharePointModel(): Promise<ModelTemplate> {
@@ -212,10 +212,10 @@ export class GenerateCommandHandler {
     }
 
     const tenantId = await spCredManager.getTenantId(siteUrl);
-    authOptions.auth.authority = `https://login.microsoftonline.com/${tenantId}`;
+    authOptions.auth.authority = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
 
     if (isNullOrEmpty(authOptions.auth.clientSecret)) {
-      const cachePath = path.join(process.cwd(), 'msal_cache.json');
+      const cachePath = path.join(process.cwd(), `msal_${authOptions.auth.clientId}_cache.json`);
       const persistence = await PersistenceCreator.createPersistence({
         cachePath,
         dataProtectionScope: DataProtectionScope.CurrentUser,
@@ -246,57 +246,57 @@ export class GenerateCommandHandler {
       return template;
     }
 
-    // this.createFolderIfNotExist(this.folderPaths.spFields);
+    this.createFolderIfNotExist(this.folderPaths.spFields);
 
-    // const modelsIndexPath = path.join(process.cwd(), 'src', this.folderPaths.spFields, 'index.ts');
+    const modelsIndexPath = path.join(process.cwd(), 'src', this.folderPaths.spFields, 'index.ts');
 
-    // const firstCreation = !fs.existsSync(modelsIndexPath);
+    const firstCreation = !fs.existsSync(modelsIndexPath);
 
-    // if (!firstCreation) {
-    //   return template;
-    // }
+    if (!firstCreation) {
+      return template;
+    }
 
-    // this.modifyIndexFile(this.folderPaths.models, `export * from './spFieldTypes';`);
+    this.modifyIndexFile(this.folderPaths.models, `export * from './spFieldTypes';`);
 
-    // const indexContent = fs.readFileSync(this.getTemplatesFile('SPFieldsIndex.ts.txt')).toString();
+    const indexContent = fs.readFileSync(this.getTemplatesFile('SPFieldsIndex.ts.txt')).toString();
 
-    // const fileInfoIndex = this.generateFilePathAndCheckIfExists(
-    //   this.folderPaths.spFields,
-    //   `index.ts`,
-    // );
+    const fileInfoIndex = this.generateFilePathAndCheckIfExists(
+      this.folderPaths.spFields,
+      `index.ts`,
+    );
 
-    // fs.writeFileSync(fileInfoIndex.filePath, indexContent);
+    fs.writeFileSync(fileInfoIndex.filePath, indexContent);
 
-    // const urlContent = fs.readFileSync(this.getTemplatesFile('UrlFieldValue.ts.txt')).toString();
+    const urlContent = fs.readFileSync(this.getTemplatesFile('UrlFieldValue.ts.txt')).toString();
 
-    // const fileInfoUrl = this.generateFilePathAndCheckIfExists(
-    //   this.folderPaths.spFields,
-    //   `UrlFieldValue.ts`,
-    // );
+    const fileInfoUrl = this.generateFilePathAndCheckIfExists(
+      this.folderPaths.spFields,
+      `UrlFieldValue.ts`,
+    );
 
-    // fs.writeFileSync(fileInfoUrl.filePath, urlContent);
+    fs.writeFileSync(fileInfoUrl.filePath, urlContent);
 
-    // const taxonomyContent = fs
-    //   .readFileSync(this.getTemplatesFile('TaxonomyFieldValue.ts.txt'))
-    //   .toString();
+    const taxonomyContent = fs
+      .readFileSync(this.getTemplatesFile('TaxonomyFieldValue.ts.txt'))
+      .toString();
 
-    // const fileInfoTaxonomy = this.generateFilePathAndCheckIfExists(
-    //   this.folderPaths.spFields,
-    //   `TaxonomyFieldValue.ts`,
-    // );
+    const fileInfoTaxonomy = this.generateFilePathAndCheckIfExists(
+      this.folderPaths.spFields,
+      `TaxonomyFieldValue.ts`,
+    );
 
-    // fs.writeFileSync(fileInfoTaxonomy.filePath, taxonomyContent);
+    fs.writeFileSync(fileInfoTaxonomy.filePath, taxonomyContent);
 
-    // const geoLocContent = fs
-    //   .readFileSync(this.getTemplatesFile('GeoLocationFieldValue.ts.txt'))
-    //   .toString();
+    const geoLocContent = fs
+      .readFileSync(this.getTemplatesFile('GeoLocationFieldValue.ts.txt'))
+      .toString();
 
-    // const fileInfoGeoLoc = this.generateFilePathAndCheckIfExists(
-    //   this.folderPaths.spFields,
-    //   `GeoLocationFieldValue.ts`,
-    // );
+    const fileInfoGeoLoc = this.generateFilePathAndCheckIfExists(
+      this.folderPaths.spFields,
+      `GeoLocationFieldValue.ts`,
+    );
 
-    // fs.writeFileSync(fileInfoGeoLoc.filePath, geoLocContent);
+    fs.writeFileSync(fileInfoGeoLoc.filePath, geoLocContent);
 
     return template;
   }
