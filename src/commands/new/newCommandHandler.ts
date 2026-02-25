@@ -1,7 +1,8 @@
 import chalk from 'chalk';
-import { isNullOrEmpty, isset } from '@spfxappdev/utility';
-import { CLI_Config } from '../../index';
+import { CLI_Config } from '../../index.js';
 import { execSync } from 'child_process';
+import spfxAppDevUtility from '@spfxappdev/utility';
+const { isNullOrEmpty, isset } = spfxAppDevUtility;
 
 export class NewCommandHandler {
   private options: string[] = [];

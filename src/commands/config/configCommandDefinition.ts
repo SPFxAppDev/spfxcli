@@ -1,10 +1,6 @@
 import * as yargs from 'yargs';
-import { ConfigCommandHandler } from './configCommandHandler';
-import {
-  allowedValues,
-  allowedValuesToSet,
-  allowedValuesToAddOrRemove,
-} from './constants';
+import { ConfigCommandHandler } from './configCommandHandler.js';
+import { allowedValues, allowedValuesToSet, allowedValuesToAddOrRemove } from './constants.js';
 
 const showAllConfigCommandDefinition: yargs.CommandModule = {
   command: ['all'],
@@ -188,6 +184,6 @@ export const configCommandDefinition: yargs.CommandModule = {
     yargs.command(createLocalConfigCommandDefinition);
   },
   handler: (argv) => {
-    yargs.showHelp();
+    // yargs.showHelp();
   },
 };

@@ -1,7 +1,11 @@
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
-import { CLI_Config } from '../../index';
+import { fileURLToPath } from 'url';
+import { CLI_Config } from '../../index.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 interface IFileInfo {
   folderPath: string;

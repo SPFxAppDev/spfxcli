@@ -1,22 +1,28 @@
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  replaceTpl,
-  replaceNonAlphanumeric,
-  isNullOrEmpty,
-  getDeepOrDefault,
-  allAreNullOrEmpty,
-} from '@spfxappdev/utility';
+import { fileURLToPath } from 'url';
 import {
   ModelTemplate,
   ISharePointModelOptions,
   SharePointModelTemplateGenerator,
-} from './sharePointModelTemplateGenerator';
-import { SPCredentialManager } from '../../sharepoint/SPCredentialManager';
-import { IAuthOptions, IUserCredentials } from 'sp-request';
+} from './sharePointModelTemplateGenerator.js';
+import { SPCredentialManager } from '../../sharepoint/SPCredentialManager.js';
 import * as readline from 'readline';
-import { CLIConfig } from '../../configstore';
+import { CLIConfig } from '../../configstore/index.js';
+import { Configuration } from '@azure/msal-node';
+import {
+  PersistenceCreator,
+  PersistenceCachePlugin,
+  DataProtectionScope,
+} from '@azure/msal-node-extensions';
+
+import spfxAppDevUtility from '@spfxappdev/utility';
+const { replaceTpl, replaceNonAlphanumeric, isNullOrEmpty, getDeepOrDefault, allAreNullOrEmpty } =
+  spfxAppDevUtility;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 interface IFileInfo {
   folderPath: string;
@@ -64,12 +70,12 @@ export class GenerateCommandHandler {
 
     const fileInfo = this.generateFilePathAndCheckIfExists(
       this.folderPaths.services,
-      `${serviceName}.ts`
+      `${serviceName}.ts`,
     );
 
     if (fileInfo.exists) {
       console.warn(
-        chalk.yellow('A service with the given (file)name already exist, please use another name')
+        chalk.yellow('A service with the given (file)name already exist, please use another name'),
       );
       return;
     }
@@ -78,12 +84,12 @@ export class GenerateCommandHandler {
 
     fs.writeFileSync(
       fileInfo.filePath,
-      replaceTpl(templateContent, { NameOfService: serviceName })
+      replaceTpl(templateContent, { NameOfService: serviceName }),
     );
 
     this.modifyIndexFile(
       this.folderPaths.services,
-      `export * from './${fileInfo.fileName.replace('.ts', '')}';`
+      `export * from './${fileInfo.fileName.replace('.ts', '')}';`,
     );
   }
 
@@ -97,12 +103,12 @@ export class GenerateCommandHandler {
 
     const fileInfoInterface = this.generateFilePathAndCheckIfExists(
       this.folderPaths.modelInterfaces,
-      `I${modelName}.ts`
+      `I${modelName}.ts`,
     );
 
     if (fileInfoInterface.exists) {
       console.warn(
-        chalk.yellow('A model with the given (file)name already exist, please use another name')
+        chalk.yellow('A model with the given (file)name already exist, please use another name'),
       );
       return;
     }
@@ -127,22 +133,22 @@ export class GenerateCommandHandler {
         NameOfModel: modelName,
         ModelMembers: template.interfaceContent,
         AdditionalImports: template.interfaceImports,
-      })
+      }),
     );
 
     this.modifyIndexFile(
       this.folderPaths.modelInterfaces,
-      `export * from './${fileInfoInterface.fileName.replace('.ts', '')}';`
+      `export * from './${fileInfoInterface.fileName.replace('.ts', '')}';`,
     );
 
     const fileInfo = this.generateFilePathAndCheckIfExists(
       this.folderPaths.models,
-      `${modelName}.ts`
+      `${modelName}.ts`,
     );
 
     if (fileInfo.exists) {
       console.warn(
-        chalk.yellow('A model with the given (file)name already exist, please use another name')
+        chalk.yellow('A model with the given (file)name already exist, please use another name'),
       );
       return;
     }
@@ -155,61 +161,83 @@ export class GenerateCommandHandler {
         NameOfModel: modelName,
         ModelMembers: template.classContent,
         AdditionalImports: template.classImports,
-      })
+      }),
     );
 
     if (template.classContent.Contains('@mapper', true)) {
       console.log(
         chalk.blue(
-          'A model was created based on SharePoint list. The model uses the @spfxappdev/mapper decorators. Please make sure that you have installed the dependency via npm/pnpm/yarn i @spfxappdev/mapper.'
-        )
+          'A model was created based on SharePoint list. The model uses the @spfxappdev/mapper decorators. Please make sure that you have installed the dependency via npm/pnpm/yarn i @spfxappdev/mapper.',
+        ),
       );
     }
 
     this.modifyIndexFile(
       this.folderPaths.models,
-      `export * from './${fileInfo.fileName.replace('.ts', '')}';`
+      `export * from './${fileInfo.fileName.replace('.ts', '')}';`,
     );
   }
 
   private async generateSharePointModel(): Promise<ModelTemplate> {
-    const spCredManager: SPCredentialManager = new SPCredentialManager(this.argv);
-    const auth: IUserCredentials = spCredManager.getSPCredentials() as IUserCredentials;
-
     if (allAreNullOrEmpty(this.argv.list, this.argv.listName)) {
       return SharePointModelTemplateGenerator.EmptyModel;
     }
 
-    while (isNullOrEmpty(auth.username)) {
-      auth.username = await this.readUserInput('SharePoint Username: ');
+    const spCredManager: SPCredentialManager = new SPCredentialManager(this.argv);
+    const authOptions: Configuration = spCredManager.getSPCredentials();
+    const showClientSecretPrompt: boolean = isNullOrEmpty(authOptions.auth.clientId);
+
+    while (isNullOrEmpty(authOptions.auth.clientId)) {
+      authOptions.auth.clientId = await this.readUserInput('App ClientId: ');
     }
 
-    while (isNullOrEmpty(auth.password)) {
-      auth.password = await this.readUserInput('Password: ');
+    if (showClientSecretPrompt) {
+      const clientSecret = await this.readUserInput(
+        'App Client Secret (leave empty for device code login): ',
+      );
+
+      if (isNullOrEmpty(clientSecret)) {
+        authOptions.auth.clientSecret = undefined;
+      }
     }
 
     let siteUrl = getDeepOrDefault<string>(
       this.argv,
       'weburl',
-      CLIConfig.Current().tryGetValue('sharepoint.siteurl')
+      CLIConfig.Current().tryGetValue('sharepoint.siteurl'),
     );
 
     while (isNullOrEmpty(siteUrl)) {
       siteUrl = await this.readUserInput('Site Url: ');
     }
 
+    const tenantId = await spCredManager.getTenantId(siteUrl);
+    authOptions.auth.authority = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+
+    if (isNullOrEmpty(authOptions.auth.clientSecret)) {
+      const cachePath = path.join(process.cwd(), `msal_${authOptions.auth.clientId}_cache.json`);
+      const persistence = await PersistenceCreator.createPersistence({
+        cachePath,
+        dataProtectionScope: DataProtectionScope.CurrentUser,
+        usePlaintextFileOnLinux: true,
+      });
+
+      authOptions.cache = {
+        cachePlugin: new PersistenceCachePlugin(persistence),
+      };
+    }
+
     const spModelOptions: ISharePointModelOptions = {
       webUrl: siteUrl,
       listUrl: this.argv.list,
       listName: this.argv.listName,
-      username: auth.username,
-      password: auth.password,
+      authConfiguration: authOptions,
       includeHiddenFields: this.argv.hidden || false,
       selectFields: '',
     };
 
     const generator: SharePointModelTemplateGenerator = new SharePointModelTemplateGenerator(
-      spModelOptions
+      spModelOptions,
     );
 
     const template: ModelTemplate = await generator.generate();
@@ -234,7 +262,7 @@ export class GenerateCommandHandler {
 
     const fileInfoIndex = this.generateFilePathAndCheckIfExists(
       this.folderPaths.spFields,
-      `index.ts`
+      `index.ts`,
     );
 
     fs.writeFileSync(fileInfoIndex.filePath, indexContent);
@@ -243,7 +271,7 @@ export class GenerateCommandHandler {
 
     const fileInfoUrl = this.generateFilePathAndCheckIfExists(
       this.folderPaths.spFields,
-      `UrlFieldValue.ts`
+      `UrlFieldValue.ts`,
     );
 
     fs.writeFileSync(fileInfoUrl.filePath, urlContent);
@@ -254,7 +282,7 @@ export class GenerateCommandHandler {
 
     const fileInfoTaxonomy = this.generateFilePathAndCheckIfExists(
       this.folderPaths.spFields,
-      `TaxonomyFieldValue.ts`
+      `TaxonomyFieldValue.ts`,
     );
 
     fs.writeFileSync(fileInfoTaxonomy.filePath, taxonomyContent);
@@ -265,7 +293,7 @@ export class GenerateCommandHandler {
 
     const fileInfoGeoLoc = this.generateFilePathAndCheckIfExists(
       this.folderPaths.spFields,
-      `GeoLocationFieldValue.ts`
+      `GeoLocationFieldValue.ts`,
     );
 
     fs.writeFileSync(fileInfoGeoLoc.filePath, geoLocContent);

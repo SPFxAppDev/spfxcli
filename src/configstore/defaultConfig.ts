@@ -1,5 +1,9 @@
-import { IConfiguration } from './IConfiguration';
+import { IConfiguration } from './IConfiguration.js';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const defaultConfig: IConfiguration = {
   packageManager: 'npm',
@@ -8,8 +12,8 @@ export const defaultConfig: IConfiguration = {
   },
   sharepoint: {
     siteurl: '',
-    password: '',
-    username: '',
+    clientId: '',
+    clientSecret: '',
   },
   customRulesSettings: {
     templatesPath: path.join(__dirname, '../templates/create'),

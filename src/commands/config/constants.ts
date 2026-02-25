@@ -2,16 +2,16 @@ export const allowedValues: string[] = [
   'packageManager',
   'npmPackages',
   'templatesPath',
-  'username',
-  'password',
+  'clientId',
+  'clientSecret',
   'siteurl',
 ];
 
 export const allowedValuesToSet: string[] = [
   'templatesPath',
   'packageManager',
-  'username',
-  'password',
+  'clientId',
+  'clientSecret',
   'siteurl',
 ];
 
@@ -23,7 +23,7 @@ export const pathForKey: Record<string, string> = {
   packageManager: 'packageManager',
   npmPackages: 'onInitCommand.npmPackages',
   templatesPath: 'customRulesSettings.templatesPath',
-  username: 'sharepoint.username',
-  password: 'sharepoint.password',
+  clientId: 'sharepoint.clientId',
+  clientSecret: 'sharepoint.clientSecret',
   siteurl: 'sharepoint.siteurl',
 };

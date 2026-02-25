@@ -16,6 +16,9 @@ _gulpfile.js
 ms-tsconfig.json
 ms-eslint.js
 .eslintrc.js
+msal_cache.json
+fast-serve
+tests
 
 # Dependency directories
 node_modules

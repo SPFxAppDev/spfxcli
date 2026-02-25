@@ -3,9 +3,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import replace from 'replace-in-file';
 import detectIndent from 'detect-indent';
-import { CLI_Config } from '../../index';
+import { CLI_Config } from '../../index.js';
 import { execSync } from 'child_process';
-import { isNullOrEmpty, isset, replaceTpl } from '@spfxappdev/utility';
+import { fileURLToPath } from 'url';
+import spfxAppDevUtility from '@spfxappdev/utility';
+const { isNullOrEmpty, isset, replaceTpl } = spfxAppDevUtility;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const spfxAppDevFolderName: string = '@spfxappdev';
 
@@ -41,6 +46,8 @@ export class InitCommandHandler {
       var curSource = path.join(source, file);
       this.copyFileSync(curSource, spfxAppDevFolder);
     });
+
+    this.installDevDependencies();
   }
 
   private extendGulpFile(): void {
@@ -49,7 +56,7 @@ export class InitCommandHandler {
 
     if (gulpfileString.indexOf('./@spfxappdev') !== -1) {
       console.log(
-        chalk.green('\u2713 It looks like your gulpfile.js was patched before, skipping.')
+        chalk.green('\u2713 It looks like your gulpfile.js was patched before, skipping.'),
       );
       return;
     }
@@ -88,7 +95,7 @@ build.initialize(require('gulp'));
 
     if (!compilerOptions) {
       console.warn(
-        chalk.yellow('\u26A0 compilerOptions were not found in your tsconfig.json, skip modifying')
+        chalk.yellow('\u26A0 compilerOptions were not found in your tsconfig.json, skip modifying'),
       );
       return;
     }
@@ -104,7 +111,7 @@ build.initialize(require('gulp'));
 
     if (compilerOptions.paths['@components/*']) {
       console.warn(
-        chalk.yellow("\u26A0 Your tsconfig.json path  '@components/*' will be replaced.")
+        chalk.yellow("\u26A0 Your tsconfig.json path  '@components/*' will be replaced."),
       );
     }
 
@@ -127,7 +134,7 @@ build.initialize(require('gulp'));
 
     if (!fs.existsSync(webpackPath)) {
       console.log(
-        chalk.green('\u2713 It looks like you have not installed spfx-fast-serve, skipping.')
+        chalk.green('\u2713 It looks like you have not installed spfx-fast-serve, skipping.'),
       );
       return;
     }
@@ -137,8 +144,8 @@ build.initialize(require('gulp'));
     if (webpackExtendString.indexOf('alias:') !== -1) {
       console.log(
         chalk.green(
-          '\u2713 It looks like your fast-serve/webpack.extend.js was patched before, skipping.'
-        )
+          '\u2713 It looks like your fast-serve/webpack.extend.js was patched before, skipping.',
+        ),
       );
       return;
     }
@@ -194,8 +201,8 @@ build.initialize(require('gulp'));
 
     console.log(
       chalk.green(
-        "\u2713 You can now use 'npm run publish' to build, bundle, package the solution and automatically increment the version. Additionally, you can use aliases 'import { yourwebpart } from '@webparts/yourwebpart' instead of relative paths."
-      )
+        "\u2713 You can now use 'npm run publish' to build, bundle, package the solution and automatically increment the version. Additionally, you can use aliases 'import { yourwebpart } from '@webparts/yourwebpart' instead of relative paths.",
+      ),
     );
   }
 
@@ -234,8 +241,8 @@ build.initialize(require('gulp'));
     if (isNullOrEmpty(packagesToInstall)) {
       console.info(
         chalk.blue(
-          `\u24D8 No custom npm packages are defined to install, installation of additional npm packages is skipped...`
-        )
+          `\u24D8 No custom npm packages are defined to install, installation of additional npm packages is skipped...`,
+        ),
       );
       return;
     }
@@ -264,7 +271,9 @@ build.initialize(require('gulp'));
         try {
           console.info(chalk.blue(`\u24D8 Try installing npm package ${packageName}...`));
 
-          execSync(`${packageManager} install ${packageName}`, {
+          const installCommand = packageManager === 'npm' ? 'install' : 'add';
+
+          execSync(`${packageManager} ${installCommand} ${packageName}`, {
             stdio: 'inherit',
           });
           console.log(chalk.green(`\u2713 ${packageName} installed successfully.`));
@@ -275,8 +284,48 @@ build.initialize(require('gulp'));
     } catch (error) {
       console.error(
         chalk.red(
-          `Error parsing config value ${packagesToInstall}. It Should be an array of string values: ${error}`
-        )
+          `Error parsing config value ${packagesToInstall}. It Should be an array of string values: ${error}`,
+        ),
+      );
+    }
+  }
+
+  private installDevDependencies(): void {
+    try {
+      const supportedPackageManager: string[] = ['npm', 'pnpm', 'yarn'];
+      let packageManager = this.argv.pm;
+
+      if (
+        isNullOrEmpty(packageManager) ||
+        (!isNullOrEmpty(packageManager) &&
+          !supportedPackageManager.Contains((mgr) => mgr == packageManager))
+      ) {
+        packageManager = CLI_Config.tryGetValue('packageManager', true);
+      }
+
+      if (!supportedPackageManager.Contains((mgr) => mgr == packageManager)) {
+        packageManager = 'npm';
+      }
+
+      ['fancy-log', 'through2'].forEach((packageName: string) => {
+        try {
+          console.info(chalk.blue(`\u24D8 Try installing npm package ${packageName}...`));
+
+          const installCommand = packageManager === 'npm' ? 'i' : 'add';
+
+          execSync(`${packageManager} ${installCommand} -D ${packageName}`, {
+            stdio: 'inherit',
+          });
+          console.log(chalk.green(`\u2713 ${packageName} installed successfully.`));
+        } catch (error) {
+          console.error(chalk.red(`Error installing ${packageName}: ${error}`));
+        }
+      });
+    } catch {
+      console.error(
+        chalk.red(
+          `Error installing the DEV dependencies fancy-log and through2. Try a manual installation. Run this command (for npm): npm -i -D fancy-log through2`,
+        ),
       );
     }
   }

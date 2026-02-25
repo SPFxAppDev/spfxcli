@@ -1,7 +1,7 @@
 import { CommandModule } from 'yargs';
 import * as Table from 'cli-table3';
 import * as chalk from 'chalk';
-import { GenerateCommandHandler } from './generateCommandHandler';
+import { GenerateCommandHandler } from './generateCommandHandler.js';
 
 const leftMargin = '    ';
 const generateCommandChoicesTable = new Table.default({
@@ -80,15 +80,15 @@ export const generateCommandDefinition: CommandModule = {
       demandOption: false,
     });
 
-    yargs.options('username', {
-      alias: 'user',
-      describe: 'SharePoint username',
+    yargs.options('clientId', {
+      alias: 'client',
+      describe: 'SharePoint App ClientId',
       demandOption: false,
     });
 
-    yargs.options('password', {
-      alias: 'p',
-      describe: 'The password to login',
+    yargs.options('clientSecret', {
+      alias: 'secret',
+      describe: 'The SharePoint App client secret',
       demandOption: false,
     });
 

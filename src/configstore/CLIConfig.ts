@@ -1,7 +1,9 @@
-import { defaultConfig } from './defaultConfig';
-import { getDeepOrDefault, isNullOrEmpty, issetDeep } from '@spfxappdev/utility';
-import { LocalConfigStore } from './LocalConfigStore';
-import { GlobalConfigStore } from './GlobalConfigStore';
+import { defaultConfig } from './defaultConfig.js';
+import { LocalConfigStore } from './LocalConfigStore.js';
+import { GlobalConfigStore } from './GlobalConfigStore.js';
+import spfxAppDevUtility from '@spfxappdev/utility';
+
+const { getDeepOrDefault, isNullOrEmpty, issetDeep } = spfxAppDevUtility;
 
 export class CLIConfig {
   private static currentInstance: CLIConfig = null;
@@ -25,7 +27,6 @@ export class CLIConfig {
 
   public tryGetValue(path: string, local: boolean = false): any {
     const allProperties = local ? this.localStore.getAll() : this.globalStore.getAll();
-
     const defaultValue = getDeepOrDefault(defaultConfig, path);
     return getDeepOrDefault(allProperties, path, defaultValue);
   }

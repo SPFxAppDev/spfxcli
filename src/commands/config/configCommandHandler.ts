@@ -1,12 +1,14 @@
-import { extend, isset } from '@spfxappdev/utility';
-import { CLI_Config } from '../../index';
-import { allowedValues, pathForKey, supportedPackageManager } from './constants';
+import { CLI_Config } from '../../index.js';
+import { allowedValues, pathForKey, supportedPackageManager } from './constants.js';
 import chalk from 'chalk';
 import * as Table from 'cli-table3';
 import * as fs from 'fs';
 import * as path from 'path';
 import detectIndent from 'detect-indent';
-import { SPCredentialManager } from '../../sharepoint/SPCredentialManager';
+import { SPCredentialManager } from '../../sharepoint/SPCredentialManager.js';
+
+import spfxAppDevUtility from '@spfxappdev/utility';
+const { isset, getDeepOrDefault, isNullOrEmpty } = spfxAppDevUtility;
 
 export class ConfigCommandHandler {
   private readonly localConfigFileName: string = 'spfxappdev-cli.config.json';
@@ -18,7 +20,7 @@ export class ConfigCommandHandler {
   }
 
   public execute(
-    commandType: 'all' | 'set' | 'get' | 'add' | 'remove' | 'removeAll' | 'create'
+    commandType: 'all' | 'set' | 'get' | 'add' | 'remove' | 'removeAll' | 'create',
   ): void {
     if (commandType === 'all') {
       return this.showConfig();
@@ -76,7 +78,14 @@ export class ConfigCommandHandler {
   }
 
   private getConfig(): void {
-    console.log(CLI_Config.tryGetValue(this.argv.key, this.useLocalConfig));
+    const path = getDeepOrDefault(pathForKey, this.argv.key, null);
+
+    if (isNullOrEmpty(path)) {
+      console.log('');
+      return;
+    }
+
+    console.log(CLI_Config.tryGetValue(path, this.useLocalConfig));
   }
 
   private setConfig(): void {
@@ -87,17 +96,17 @@ export class ConfigCommandHandler {
       return console.error(
         chalk.red(
           `The passed value is not valid. Supported package manager are: ${supportedPackageManager.join(
-            ', '
-          )}`
-        )
+            ', ',
+          )}`,
+        ),
       );
     }
 
     let value = this.argv.value;
-    if (this.argv.key === 'password') {
-      const spCredManager: SPCredentialManager = new SPCredentialManager(this.argv);
-      value = spCredManager.createEncryptedPassword(value, this.argv.local || false);
-    }
+    // if (this.argv.key === 'password') {
+    //   const spCredManager: SPCredentialManager = new SPCredentialManager(this.argv);
+    //   // value = spCredManager.createEncryptedPassword(value, this.argv.local || false);
+    // }
 
     CLI_Config.setConfig(pathForKey[this.argv.key], value, this.useLocalConfig);
   }

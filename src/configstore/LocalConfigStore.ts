@@ -1,9 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import detectIndent from 'detect-indent';
-import { extend, getDeepOrDefault, isNullOrEmpty, issetDeep } from '@spfxappdev/utility';
-import { GlobalConfigStore } from './GlobalConfigStore';
+import { GlobalConfigStore } from './GlobalConfigStore.js';
 import chalk from 'chalk';
+
+import spfxAppDevUtility from '@spfxappdev/utility';
+const { extend, getDeepOrDefault, isNullOrEmpty, issetDeep } = spfxAppDevUtility;
 
 const localConfigFileName: string = 'spfxappdev-cli.config.json';
 const localConfigPath = path.join(process.cwd(), localConfigFileName);
@@ -22,7 +24,7 @@ export class LocalConfigStore {
 
   private get defaultConfig(): any {
     const globalConfig = GlobalConfigStore.Current().getAll();
-    globalConfig.sharepoint.password = '';
+    // globalConfig.sharepoint.password = '';
     return globalConfig;
   }
 
@@ -98,8 +100,8 @@ export class LocalConfigStore {
     if (this.localConfigExists) {
       console.log(
         chalk.yellow(
-          `A local file '${localConfigFileName}' already exist. It is merged with the configurations from the global file`
-        )
+          `A local file '${localConfigFileName}' already exist. It is merged with the configurations from the global file`,
+        ),
       );
     }
 

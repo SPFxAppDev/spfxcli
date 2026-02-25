@@ -1,3 +1,3 @@
-export { registerBumbVersionTask } from './bumpVersion';
-export { resolveCustomAlias } from './customAlias';
-export { disableWarningsCommandDefinition } from './disableWarnings';
+export { registerBumbVersionTask } from './bumpVersion.js';
+export { resolveCustomAlias } from './customAlias.js';
+export { disableWarningsCommandDefinition } from './disableWarnings.js';
