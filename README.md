@@ -62,7 +62,7 @@ And yes, I have to admit the rules and settings match my typical settings and co
   * [fast-serve/webpack.extend.js](#fast-servewebpackextendjs)
     + [Example](#example-6)
     + [Full example](#full-example-2)
-- [Update v1 to v2](#update-v1-to-v2)
+- [Authentication with SharePoint/Graph](#authentication-with-sharepointgraph)
 - [Further links](#further-links)
 
 ## Installation
@@ -163,7 +163,10 @@ spfx g s News
 
 You can create a model based on a SharePoint list (fields). The only options required are `--list` OR `--listName` to tell the CLI that you want a model based on that specific list.
 
->**Note:** The authentication model has changed since version 2.0.0. You can no longer log in with a username and password; you must now provide at least a client ID. If only the client ID is provided, "Device Code Flow" is used for authentication. If a client secret is also provided, then "Client Credential Flow" is used. For more details see: [Use authentication](#further-links)
+><br/>ℹ️ **Note:** As of version 2.0.0, the authentication model has changed. Logging in with a username and password is no longer supported; you must now provide at least a `Client ID`. 
+> - If only a `Client ID` is provided, the tool uses the **Device Code Flow** (user authentication with Delegated Permissions via SharePoint REST API). 
+> - If a `Client Secret` is also provided, it automatically switches to the **Client Credentials Flow** (App Permissions via Microsoft Graph API).
+> <br/><br/>For more details, see [Authentication with SharePoint/Graph](#authentication-with-sharepointgraph)<br/><br/>
 
 
 | Option       | Alias       | Description |
@@ -171,11 +174,58 @@ You can create a model based on a SharePoint list (fields). The only options req
 | `--list` | `-l` |   SharePoint web relative list URL e.g. `Lists/MyList` or `SitePages`.     |
 | `--listName` | `--ln` |   The Name/Title of the List     |
 | `--weburl` | `-u` |   `OPTIONAL:` You can specify an absolute web URL where the list is located. If this option is not set, the local or global settings will be used (property: `siteurl`). If the `siteurl` value from the configuration file is empty, the CLI will automatically ask for the web URL     |
-| `--clientId` | `--client` |   `OPTIONAL:` You can specify a clientId to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `clientId`). If the `clientId` value from the configuration file is empty, the CLI will automatically prompt for the clientId     |
-| `--clientSecret` | `--secret` |   `OPTIONAL:` You can specify a clientSecret to authenticate to Sharepoint. If this option is not set, the local or global settings are used (property: `clientSecret`). If the `clientSecret` value from the configuration file is empty, the CLI will automatically prompt for the clientSecret (Leave the field blank to use only the client ID and log in via device code (Browser).)     |
-| `--hidden` or `--no-hidden` |  |   Normally, the model is created with fields that are not "hidden". However, you can specify whether you want to include the hidden fields as well      |
+| `--clientId` | `--client` |   `OPTIONAL:` You can specify a clientId to authenticate to SharePoint. If this option is not set, the local or global settings are used (property: `clientId`). If the `clientId` value from the configuration file is empty, the CLI will automatically prompt for the clientId     |
+| `--clientSecret` | `--secret` |   `OPTIONAL:` You can specify a clientSecret to authenticate to SharePoint (via Microsoft Graph API). If this option is not set, the local or global settings are used (property: `clientSecret`). If the `clientSecret` value from the configuration file is empty, the CLI will automatically prompt for the clientSecret (Leave the field blank to use only the client ID and log in via **Device Code Flow** (Browser).)     |
+| `--hidden` or `--no-hidden` |  |   Normally, the model is created with fields that are not "hidden". However, you can specify whether you want to include the hidden fields as well (Hidden fields can only be accessed via SharePoint REST API (**Device Code Flow** Authentication))      |
 
-> Note: The SharePoint list based model generator needs the npm package `@spfxappdev/mapper` to map the internal field names to the (friendly) model properties. 
+> <br/>ℹ️ **Note**: The SharePoint list based model generator needs the npm package `@spfxappdev/mapper` to map the internal field names to the (friendly) model properties. <br/><br/>
+
+##### SharePoint REST-API vs. Microsoft Graph API Models
+
+Depending on how you authenticate, either the SharePoint Rest API or the Graph API is used. The reason for this is that with `Client Secret` and `Client ID` (**Client Credentials Flow**), you can only access the Graph API, but not the SharePoint Rest API, which does not allow app-only authentication. Authentication via **Client Credentials Flow** is somewhat easier because you don't have to re-authenticate every time, but it has a few disadvantages when generating models. Even though the Graph API documentation says that taxonomy fields and URL fields are resolved, these fields come back in the response WITHOUT this information. It is also NOT possible to read hidden list fields, even if there is a `hidden` property. If type safety is not important (at least for generation) or if no hidden fields are required, **Client Credentials Flow** authentication is the easier way to generate a model. 
+
+Here is an example of how a model is created using the SharePoint REST API and, in comparison, using the Graph API, which contains taxonomy and URL fields.
+
+**SharePont REST-API**
+
+```typescript 
+export class ListModel implements IListModel {
+  @mapper({ nameOrPath: 'urlField', type: UrlFieldValue,  })
+	public urlField: UrlFieldValue;  //Type is UrlFieldValue
+
+	@mapper({ nameOrPath: 'ImageField', type: UrlFieldValue,  })
+	public imageField: UrlFieldValue; //Type is UrlFieldValue
+
+	@mapper({ nameOrPath: 'Task',  })
+	public task: string;  //Type is string
+
+	@mapper({ nameOrPath: 'taxonomyField', type: TaxonomyFieldValue,  })
+	public taxonomyField: TaxonomyFieldValue; //Type is TaxonomyFieldValue
+
+	@mapper({ nameOrPath: 'MultiTaxField', type: TaxonomyFieldValue,  })
+	public multiTaxField: TaxonomyFieldValue[]; //Type is TaxonomyFieldValue-Array
+} 
+```
+
+**Graph API**
+```typescript 
+export class ListModel implements IListModel {
+  @mapper({ nameOrPath: 'urlField'  })
+	public urlField: any;  //Type is any
+
+	@mapper({ nameOrPath: 'ImageField'  })
+	public imageField: any; //Type is any
+
+	@mapper({ nameOrPath: 'Task',  })
+	public task: any;  //Type is any
+
+	@mapper({ nameOrPath: 'taxonomyField'  })
+	public taxonomyField: any; //Type is any
+
+	@mapper({ nameOrPath: 'MultiTaxField'  })
+	public multiTaxField: any[]; //Type is any
+} 
+```
 
 
 ---
@@ -561,8 +611,18 @@ resolve: {
 }
 ```
 
-## Update v1 to v2
+## Authentication with SharePoint/Graph
 
+If you want to use the CLI to generate a model based on a SharePoint list and its fields, you must authenticate with SharePoint or the Microsoft Graph API. To do this, you must create a new app registration in Azure. PnP PowerShell is best suited for this. You can follow the steps in the [PnP PowerShell documentation](https://pnp.github.io/powershell/articles/registerapplication.html) to register a new app, or - if you already have an app for PnP PowerShell - use the existing app and its `Client ID`. After that, you can also authenticate yourself using only the `Client ID` via **Device Code Flow** authentication (a code must be entered in the browser). The authentication is cached. For this purpose, an `msal_{clientId}_cache.json` file is created in the root directory of the project. If the access token is no longer valid or the file has been deleted, you must re-authenticate via the browser. 
+
+If you want to use **Client Credentials Flow** authentication and the Graph API, you need to extend the permissions for your app. In the Azure portal, navigate to your Microsoft Entra ID > App registrations > All applications > YOUR APP > API Permissions > Add a permission > Microsoft Graph > Application Permissions > Search for `Sites` and select at least `Sites.Read.All` > Add permissions (Do not forget to grant admin consent).
+
+Then click on the same App (Microsoft Entra ID > App registrations > All applications > YOUR APP) on `Certificates & secrets` > Client secrets > New client secret > Add
+
+> ℹ️ **Note:** 
+Client secret values cannot be viewed, except for immediately after creation. Be sure to save the secret when created before leaving the page.
+
+Now you can use the `Client ID` and `Client secret` to authenticate and generate Models via Graph API.
 
 ## Further links
 
