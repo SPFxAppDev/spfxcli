@@ -1,99 +1,122 @@
-const gulp = require('gulp');
-const gulpLog = require('fancy-log');
-const through2 = require('through2');
+import * as fs from 'fs';
+import * as path from 'path';
+import { disableWarningsCommandDefinition } from './disableWarnings.js';
 
-const fs = require('fs');
+export interface IHeftTaskSession {
+  logger: {
+    terminal: {
+      writeLine(message: string): void;
+      writeWarningLine(message: string): void;
+    };
+  };
+  hooks: {
+    run: {
+      tapPromise(pluginName: string, callback: () => Promise<void>): void;
+    };
+  };
+}
+
+export interface HeftConfiguration {
+  buildFolderPath: string;
+}
+
+export interface IHeftTaskPlugin {
+  apply(taskSession: IHeftTaskSession, heftConfiguration: HeftConfiguration): void;
+}
 
 const getJson = (file: string): any => {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 };
 
-export const registerBumbVersionTask = (build: any): void => {
-  let bumpVersionSubTask = build.subTask(
-    'bump-version-subtask',
-    function (gulp: any, buildOptions: any, done: any) {
-      const currentCommand = buildOptions.args._[0];
+export default class BumpVersionPlugin implements IHeftTaskPlugin {
+  public apply(taskSession: IHeftTaskSession, heftConfiguration: HeftConfiguration): void {
+    disableWarningsCommandDefinition();
 
-      const skipFunc = gulp.src('./config/package-solution.json').pipe(through2.obj());
+    taskSession.hooks.run.tapPromise('bump-version-plugin', async () => {
+      const logger = taskSession.logger;
+      const argv = process.argv;
+      const argsString = argv.join(' ').toLowerCase();
 
-      if (typeof currentCommand != 'string') {
-        gulpLog('The current command is undefined, skip version bump');
-        return skipFunc;
-      }
+      const isBumpVersionCommand = argsString.includes('bump-version');
+      const isProduction = argsString.includes('--production') || argsString.includes('--ship');
 
-      const commandName = currentCommand.toLocaleLowerCase();
-
-      if (commandName != 'bundle' && commandName != 'bump-version') {
-        gulpLog("The current command is not 'bundle' or 'bump-version', skip version bump");
-        return skipFunc;
-      }
-
-      const bumpVersion = commandName == 'bump-version' || buildOptions.args['ship'] === true;
-
-      if (!bumpVersion) {
-        gulpLog(
-          "The current command is not 'bump-version' or the --ship argument was not specified, skip version bump",
+      if (!isBumpVersionCommand && !isProduction) {
+        logger.terminal.writeLine(
+          "The current command is not 'bump-version' or the --production/--ship argument was not specified, skip version bump"
         );
-        return skipFunc;
+        return;
       }
 
-      const a = buildOptions.args;
+      const explicitFalseMajor = argv.some((arg) => arg === '--major=false' || arg === '--no-major');
+      const explicitFalseMinor = argv.some((arg) => arg === '--minor=false' || arg === '--no-minor');
+      const explicitFalsePatch = argv.some((arg) => arg === '--patch=false' || arg === '--no-patch');
 
-      const skipMajorVersion = typeof a['major'] == 'undefined' || a['major'] === false;
-      const skipMinorVersion =
-        !skipMajorVersion || typeof a['minor'] == 'undefined' || a['minor'] === false;
-      const skipPatchVersion = !skipMajorVersion || !skipMinorVersion || a['patch'] === false;
+      const hasMajor = argv.some((arg) => arg === '--major' || arg.startsWith('--major=true'));
+      const hasMinor = argv.some((arg) => arg === '--minor' || arg.startsWith('--minor=true'));
+      const hasPatch = argv.some((arg) => arg === '--patch' || arg.startsWith('--patch=true'));
 
-      if (skipMajorVersion && skipMinorVersion && skipPatchVersion) {
-        gulpLog(
-          "skip version bump, because all specified arguments (major, minor, patch) are set to 'false'",
+      const skipMajorVersion = explicitFalseMajor || !hasMajor;
+      const skipMinorVersion = explicitFalseMinor || (!skipMajorVersion ? true : !hasMinor);
+      const skipPatchVersion = explicitFalsePatch || (!skipMajorVersion || !skipMinorVersion ? true : !hasPatch);
+
+      let bumpMajor = !skipMajorVersion;
+      let bumpMinor = skipMajorVersion && !skipMinorVersion;
+      let bumpPatch = skipMajorVersion && skipMinorVersion && !skipPatchVersion;
+
+      if (!hasMajor && !hasMinor && !hasPatch) {
+        bumpMajor = false;
+        bumpMinor = false;
+        bumpPatch = !explicitFalsePatch;
+      }
+
+      if (!bumpMajor && !bumpMinor && !bumpPatch) {
+        logger.terminal.writeLine(
+          "skip version bump, because all specified arguments (major, minor, patch) are set to 'false'"
         );
-        return skipFunc;
+        return;
       }
 
-      const pkgSolutionJson = getJson('./config/package-solution.json');
-      const currentVersionNumber = String(pkgSolutionJson.solution.version);
-      let nextVersionNumber = currentVersionNumber.slice();
-      let nextVersionSplitted: any[] = nextVersionNumber.split('.');
-      gulpLog('Current version: ' + currentVersionNumber);
+      const pkgSolutionPath = path.resolve(heftConfiguration.buildFolderPath, 'config/package-solution.json');
+      if (!fs.existsSync(pkgSolutionPath)) {
+        logger.terminal.writeWarningLine(`File not found: ${pkgSolutionPath}`);
+        return;
+      }
 
-      if (!skipMajorVersion) {
-        nextVersionSplitted[0] = parseInt(nextVersionSplitted[0]) + 1;
+      const pkgSolutionJson = getJson(pkgSolutionPath);
+      const currentVersionNumber = String(pkgSolutionJson.solution.version || '1.0.0.0');
+      let nextVersionSplitted: number[] = currentVersionNumber.split('.').map((v) => parseInt(v, 10) || 0);
+      while (nextVersionSplitted.length < 4) {
+        nextVersionSplitted.push(0);
+      }
+
+      logger.terminal.writeLine(`Current version: ${currentVersionNumber}`);
+
+      if (bumpMajor) {
+        nextVersionSplitted[0] = (nextVersionSplitted[0] || 0) + 1;
         nextVersionSplitted[1] = 0;
         nextVersionSplitted[2] = 0;
         nextVersionSplitted[3] = 0;
-      }
-
-      if (!skipMinorVersion) {
-        nextVersionSplitted[1] = parseInt(nextVersionSplitted[1]) + 1;
+      } else if (bumpMinor) {
+        nextVersionSplitted[1] = (nextVersionSplitted[1] || 0) + 1;
         nextVersionSplitted[2] = 0;
         nextVersionSplitted[3] = 0;
-      }
-
-      if (!skipPatchVersion) {
-        nextVersionSplitted[2] = parseInt(nextVersionSplitted[2]) + 1;
+      } else if (bumpPatch) {
+        nextVersionSplitted[2] = (nextVersionSplitted[2] || 0) + 1;
         nextVersionSplitted[3] = 0;
       }
 
-      nextVersionNumber = nextVersionSplitted.join('.');
-
-      gulpLog('New version: ', nextVersionNumber);
+      const nextVersionNumber = nextVersionSplitted.join('.');
+      logger.terminal.writeLine(`New version: ${nextVersionNumber}`);
 
       pkgSolutionJson.solution.version = nextVersionNumber;
-      fs.writeFile(
-        './config/package-solution.json',
-        JSON.stringify(pkgSolutionJson, null, 4),
-        () => {},
-      );
+      fs.writeFileSync(pkgSolutionPath, JSON.stringify(pkgSolutionJson, null, 2) + '\n');
 
-      const packageJson = getJson('./package.json');
-      packageJson.version = nextVersionNumber.split('.').splice(0, 3).join('.');
-      fs.writeFile('./package.json', JSON.stringify(packageJson, null, 4), () => {});
-
-      return gulp.src('./config/package-solution.json').pipe(gulp.dest('./config'));
-    },
-  );
-
-  let bumpVersionTask = build.task('bump-version', bumpVersionSubTask);
-  build.rig.addPreBuildTask(bumpVersionTask);
-};
+      const pkgJsonPath = path.resolve(heftConfiguration.buildFolderPath, 'package.json');
+      if (fs.existsSync(pkgJsonPath)) {
+        const packageJson = getJson(pkgJsonPath);
+        packageJson.version = nextVersionSplitted.slice(0, 3).join('.');
+        fs.writeFileSync(pkgJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+      }
+    });
+  }
+}

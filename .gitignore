@@ -19,6 +19,7 @@ ms-eslint.js
 msal_cache.json
 fast-serve
 tests
+.antigravity
 
 # Dependency directories
 node_modules

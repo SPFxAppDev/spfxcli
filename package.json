@@ -1,6 +1,6 @@
 {
   "name": "@spfxappdev/cli",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "",
   "main": "lib/index.js",
   "bin": {
@@ -11,8 +11,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run cli -- --version",
-    "precli": "tsc && rmdir /s /q .\\lib\\templates\\create && mkdir .\\lib\\templates\\create && copy .\\src\\templates\\create\\** .\\lib\\templates\\create\\",
-    "prepublish": "tsc && rmdir /s /q .\\lib\\templates\\create && mkdir .\\lib\\templates\\create && copy .\\src\\templates\\create\\** .\\lib\\templates\\create\\",
+    "precli": "tsc && cpy \"src/templates/copy/*.json\" lib/templates/copy && cpy src/templates/create/* lib/templates/create",
+    "prepublish": "tsc && cpy \"src/templates/copy/*.json\" lib/templates/copy && cpy src/templates/create/* lib/templates/create",
     "cli": "node lib/index.js",
     "copy": "cpy **/*.js* ../../lib/templates --parents --cwd=src/templates && cpy **/*.txt ../../lib/templates --parents --cwd=src/templates"
   },
@@ -45,6 +45,7 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@rushstack/heft": "1.2.17",
     "@types/node": "^20.4.0",
     "@types/yargs": "^17.0.24",
     "cpy-cli": "^5.0.0",

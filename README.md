@@ -7,9 +7,11 @@ The **@spfxappdev/cli** is a command-line interface (CLI) tool that helps you in
 It assists you in multiple ways, including creating a new project with your preferred package manager, initializing your preferred settings after creating the project, and scaffolding services or models. 
 
 For example, if you run the `spfxappdev new` command, the `yo @microsoft/sharepoint` command is automatically invoked, and your configured package manager is passed as an option.
-If the project has already been created, you can run the `spfxappdev init` command. This command will register some `gulp` tasks or modify your SharePoint Framework solution to use `alias` paths instead of relative paths. 
+If the project has already been created, you can run the `spfxappdev init` command. This command will register some `heft` tasks or modify your SharePoint Framework solution to use `alias` paths instead of relative paths. 
 
 You [can configure the CLI the way you need it](#spfxappdev-config) — think of it as "my own SPFx generator for each project." Not everything is configurable yet, but the CLI is continuously being developed. I admit that the default rules and settings match my personal preferences, but since I wanted to avoid repeating the same setup steps for every project, I created this CLI to make my life easier. I hope you find it useful too! I am always open to suggestions for improvement. [Read more about my tips on how to configure an SPFx project after it is created. This CLI is based on or modifies the project as described here](https://spfx-app.dev/my-personal-tips-how-to-configure-a-spfx-project-after-creation)
+
+>IMPORTANT: If you are using SPFx < 1.22.0 (Gulp-based toolchain), please use version 2.x.x of this CLI. Starting with version 3.0.0, only the Heft-based toolchain is supported (SPFx Version >= 1.22.0).
 
 ## Content:
 
@@ -30,7 +32,7 @@ You [can configure the CLI the way you need it](#spfxappdev-config) — think of
   * [spfxappdev custom-rules](#spfxappdev-custom-rules)
     + [Description](#description-2)
   * [spfxappdev config](#spfxappdev-config)
-  * [Available settings](#available-settings)
+    + [Available settings](#available-settings)
   * [spfxappdev config all](#spfxappdev-config-all)
     + [Options](#options-1)
   * [spfxappdev config get](#spfxappdev-config-get)
@@ -233,12 +235,14 @@ export class ListModel implements IListModel {
 ### spfxappdev init
 ![since @spfxappdev/cli@1.0.0](https://img.shields.io/badge/since-v1.0.0-orange)
 
+>IMPORTANT: If you are using SPFx < 1.22.0 (Gulp-based toolchain), please use version 2.x.x of this CLI. Starting with version 3.0.0, only the Heft-based toolchain is supported (SPFx Version >= 1.22.0).
+
 Initializes and configures the project.
 
 After you run the command, the following steps are executed:
 
 1. A new folder `@spfxappdev` is created in the root directory of the project.
-2. The `gulpfile.js` file is modified: Aliases are registered, the `bump-version` task is defined, and a rule is added to prevent warnings from failing the build process.
+2. The `config/heft.json` and `config/spfx-customize-webpack.js` files are modified/created: Aliases are registered, the `bump-version` task is defined, and a rule is added to prevent warnings from failing the build process.
 3. `tsconfig.json` is modified: Path `aliases` and `baseUrl` are set.
 4. `fast-serve/webpack.extend.js` is modified (if available): Aliases are registered.
 5. The `package.json` file is modified: The `publish` and `publish:nowarn` scripts are defined.
@@ -261,14 +265,14 @@ spfx init [options]
 #### Description
 
 After running the `spfxappdev init` command, you can use "aliases" instead of relative paths ([see the "How to use the alias paths" section](#how-to-use-the-alias-paths)).
-Additionally, you can run the `npm run publish` command. This command executes `gulp clean`, `gulp build`, `gulp bundle --ship`, and `gulp package-solution --ship`. The newly registered gulp task `bump-version` is also executed, which automatically increments the version of the solution.
+Additionally, you can run the `npm run publish` command. This command executes `heft clean` and `heft build --production` (with `heft package-solution --production` in `postpublish`). The newly registered heft task `bump-version` is also executed, which automatically increments the version of the solution.
 
 > Normally, a warning in the terminal causes the build to fail. If you want to suppress warnings during the build, you can run the `npm run publish:nowarn` command instead.
 
 If you want to increment the version without building or bundling the solution, you can use this standalone command:
 
 ```bash
-gulp bump-version
+heft bump-version
 ```
 
 > More information about the `publish` and `bump-version` commands can be found in [my blog post](https://spfx-app.dev/package-spfx-solution-with-one-command-and-automatically-increase-the-version).
@@ -306,7 +310,7 @@ spfx c
 
 > As of version `1.1.0`, there is an option to create a "local" configuration file per project. If a local file exists, its settings will take precedence. If specific properties are missing in the local file, the CLI will fall back to the values from the global configuration file.
 
-### Available settings
+#### Available settings
 
 | Key                 | Default value | Description |
 |---------------------|---------------|---------------|
@@ -518,34 +522,43 @@ If you need to register additional aliases, you must update a few specific files
 
 ### @spfxappdev/customAlias.js
 
-Open the generated `@spfxappdev/customAlias.js` file and append your new aliases (starting around line 11).
+Open the generated `@spfxappdev/customAlias.js` file in your `@spfxappdev` folder and append your new aliases inside the `resolveCustomAlias(webpackConfiguration)` function.
+
+The generated `config/spfx-customize-webpack.js` file automatically invokes `resolveCustomAlias(webpackConfiguration)` during the Heft build process.
 
 #### Example
 
-```typescript
-generatedConfiguration.resolve.alias['@apps'] = path.resolve(__dirname, '..', 'lib/extensions');
+```javascript
+webpackConfiguration.resolve.alias['@apps'] = path.resolve(__dirname, '..', 'src/extensions');
 ```
-
-> NOTE: In this file, you must map the alias to the `lib` folder, not `src`.
-
 
 #### Full example
 
-```typescript
-function resolveCustomAlias(build) {
-    build.configureWebpack.mergeConfig({
-        additionalConfiguration: (generatedConfiguration) => {
-            if (!generatedConfiguration.resolve.alias) {
-                generatedConfiguration.resolve.alias = {};
-            }
-            generatedConfiguration.resolve.alias['@webparts'] = path.resolve(__dirname, '..', 'lib/webparts');
-            generatedConfiguration.resolve.alias['@components'] = path.resolve(__dirname, '..', 'lib/components');
-            generatedConfiguration.resolve.alias['@src'] = path.resolve(__dirname, '..', 'lib');
-            generatedConfiguration.resolve.alias['@apps'] = path.resolve(__dirname, '..', 'lib/extensions');
-            return generatedConfiguration;
-        }
-    });
+```javascript
+const path = require('path');
+
+function resolveCustomAlias(webpackConfiguration) {
+  if (!webpackConfiguration) {
+    return webpackConfiguration;
+  }
+  if (!webpackConfiguration.resolve) {
+    webpackConfiguration.resolve = {};
+  }
+  if (!webpackConfiguration.resolve.alias) {
+    webpackConfiguration.resolve.alias = {};
+  }
+
+  webpackConfiguration.resolve.alias['@webparts'] = path.resolve(__dirname, '..', 'src/webparts');
+  webpackConfiguration.resolve.alias['@components'] = path.resolve(__dirname, '..', 'src/components');
+  webpackConfiguration.resolve.alias['@src'] = path.resolve(__dirname, '..', 'src');
+  webpackConfiguration.resolve.alias['@apps'] = path.resolve(__dirname, '..', 'src/extensions');
+
+  return webpackConfiguration;
 }
+
+module.exports = {
+  resolveCustomAlias,
+};
 ```
 
 

@@ -20,7 +20,7 @@ export class RulesCommandHandler {
   public execute(): void {
     const msTsConfigFileName: string = 'ms-tsconfig.json';
     const msESLintFileName: string = 'ms-eslint.js';
-    const esLintFileName: string = '.eslintrc.js';
+    const esLintFileName: string = 'eslint.config.js';
     const tsConfigFileName: string = 'tsconfig.json';
 
     const msTSFileInfo =
