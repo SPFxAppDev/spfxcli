@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/heft/v0/heft-plugin.schema.json",
+  "lifecyclePlugins": [
+    {
+      "pluginName": "disable-warnings-plugin",
+      "entryPoint": "./disableWarnings.js",
+      "parameters": [
+        {
+          "parameterKind": "flag",
+          "longName": "--warnoff",
+          "description": "Suppresses yellow warning messages."
+        }
+      ]
+    }
+  ],
+  "taskPlugins": [
+    {
+      "pluginName": "bump-version-plugin",
+      "entryPoint": "./bumpVersion.js",
+      "parameters": [
+        {
+          "parameterKind": "flag",
+          "longName": "--major",
+          "description": "Increments the major version."
+        },
+        {
+          "parameterKind": "flag",
+          "longName": "--minor",
+          "description": "Increments the minor version."
+        },
+        {
+          "parameterKind": "flag",
+          "longName": "--patch",
+          "description": "Increments the patch version."
+        }
+      ]
+    }
+  ]
+}
